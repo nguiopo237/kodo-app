@@ -5,26 +5,24 @@ import Layout from './components/common/Layout';
 import Login from './pages/Login';
 import './App.css';
 
-// Pages Admin
-import DashboardAdmin from './pages/admin/DashboardAdmin';
-import GestionComplete from './pages/admin/GestionComplete';
-import GestionProduits from './pages/admin/GestionProduits';
-import GestionUtilisateurs from './pages/admin/GestionUtilisateurs';
-import EnvoisTransport from './pages/admin/EnvoisTransport';
-import ComptabiliteAdmin from './pages/admin/ComptabiliteAdmin';
-import Rapports from './pages/admin/Rapports';
-import Parametres from './pages/admin/Parametres';
+// Lazy loading des pages (code splitting par route)
+const DashboardAdmin = React.lazy(() => import('./pages/admin/DashboardAdmin'));
+const GestionComplete = React.lazy(() => import('./pages/admin/GestionComplete'));
+const GestionProduits = React.lazy(() => import('./pages/admin/GestionProduits'));
+const GestionUtilisateurs = React.lazy(() => import('./pages/admin/GestionUtilisateurs'));
+const EnvoisTransport = React.lazy(() => import('./pages/admin/EnvoisTransport'));
+const ComptabiliteAdmin = React.lazy(() => import('./pages/admin/ComptabiliteAdmin'));
+const Rapports = React.lazy(() => import('./pages/admin/Rapports'));
+const Parametres = React.lazy(() => import('./pages/admin/Parametres'));
 
-// Pages Vendeur
-import DashboardVendeur from './pages/vendeur/DashboardVendeur';
-import InterfaceVente from './pages/vendeur/InterfaceVente';
-import MesVentes from './pages/vendeur/MesVentes';
-import DeclarerDepenses from './pages/vendeur/DeclarerDepenses';
-import ConfirmerReception from './pages/vendeur/ConfirmerReception';
-import ComptabiliteVendeur from './pages/vendeur/ComptabiliteVendeur';
+const DashboardVendeur = React.lazy(() => import('./pages/vendeur/DashboardVendeur'));
+const InterfaceVente = React.lazy(() => import('./pages/vendeur/InterfaceVente'));
+const MesVentes = React.lazy(() => import('./pages/vendeur/MesVentes'));
+const DeclarerDepenses = React.lazy(() => import('./pages/vendeur/DeclarerDepenses'));
+const ConfirmerReception = React.lazy(() => import('./pages/vendeur/ConfirmerReception'));
+const ComptabiliteVendeur = React.lazy(() => import('./pages/vendeur/ComptabiliteVendeur'));
 
-// Pages communes
-import NotFound from './pages/NotFound';
+const NotFound = React.lazy(() => import('./pages/NotFound'));
 
 // Loading spinner
 const LoadingSpinner = () => (
@@ -72,6 +70,7 @@ function App() {
 
   return (
     <div className="App">
+      <React.Suspense fallback={<LoadingSpinner />}>
       <Routes>
         {/* Route publique */}
         <Route path="/login" element={
@@ -167,6 +166,7 @@ function App() {
         {/* Route 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      </React.Suspense>
     </div>
   );
 }
