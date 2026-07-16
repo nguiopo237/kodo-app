@@ -1,0 +1,210 @@
+{
+  "derniereMiseAJour": "2024-01-20T10:30:00",
+  "utilisateurs": [
+    {
+      "idUser": 1,
+      "username": "admin",
+      "password": "admin123",
+      "role": "admin",
+      "nomComplet": "Administrateur Principal",
+      "email": "admin@kodomarket.com",
+      "localisation": "France",
+      "actif": true,
+      "dateCreation": "2024-01-01"
+    },
+    {
+      "idUser": 2,
+      "username": "vendeur1",
+      "password": "vendeur123",
+      "role": "vendeur",
+      "nomComplet": "Jean Dupont",
+      "email": "jean@kodomarket.com",
+      "localisation": "Douala, Cameroun",
+      "actif": true,
+      "dateCreation": "2024-01-02"
+    },
+    {
+      "idUser": 3,
+      "username": "vendeur2",
+      "password": "vendeur123",
+      "role": "vendeur",
+      "nomComplet": "Marie Claude",
+      "email": "marie@kodomarket.com",
+      "localisation": "Yaoundé, Cameroun",
+      "actif": true,
+      "dateCreation": "2024-01-03"
+    }
+  ],
+  "categories": [
+    { "id": 1, "nom": "Alimentation", "description": "Produits alimentaires", "couleur": "#10b981", "icon": "🍎" },
+    { "id": 2, "nom": "Boissons", "description": "Boissons et jus", "couleur": "#3b82f6", "icon": "🥤" },
+    { "id": 3, "nom": "Conserves", "description": "Produits en conserve", "couleur": "#f59e0b", "icon": "🥫" },
+    { "id": 4, "nom": "Hygiène", "description": "Produits d'hygiène", "couleur": "#8b5cf6", "icon": "🧴" },
+    { "id": 5, "nom": "Entretien", "description": "Produits d'entretien", "couleur": "#6366f1", "icon": "🧹" }
+  ],
+  "produits": [
+    {
+      "idProduit": 1,
+      "categorie": "Alimentation",
+      "nomProduit": "Riz Basmati 5kg",
+      "quantiteInitiale": 500,
+      "rebus": 5,
+      "quantiteExacte": 495,
+      "prixExact": 7500,
+      "prixBoutique": 10000,
+      "dateAjout": "2024-01-10",
+      "ajoutePar": 1,
+      "alerteSeuil": 20,
+      "quantiteRestante": 150,
+      "quantiteVendue": 345
+    },
+    {
+      "idProduit": 2,
+      "categorie": "Alimentation",
+      "nomProduit": "Huile végétale 2L",
+      "quantiteInitiale": 300,
+      "rebus": 2,
+      "quantiteExacte": 298,
+      "prixExact": 3500,
+      "prixBoutique": 4500,
+      "dateAjout": "2024-01-10",
+      "ajoutePar": 1,
+      "alerteSeuil": 15,
+      "quantiteRestante": 85,
+      "quantiteVendue": 213
+    },
+    {
+      "idProduit": 3,
+      "categorie": "Boissons",
+      "nomProduit": "Café Arabica 1kg",
+      "quantiteInitiale": 200,
+      "rebus": 1,
+      "quantiteExacte": 199,
+      "prixExact": 12500,
+      "prixBoutique": 15000,
+      "dateAjout": "2024-01-11",
+      "ajoutePar": 1,
+      "alerteSeuil": 10,
+      "quantiteRestante": 45,
+      "quantiteVendue": 154
+    },
+    {
+      "idProduit": 4,
+      "categorie": "Alimentation",
+      "nomProduit": "Sucre cristal 5kg",
+      "quantiteInitiale": 400,
+      "rebus": 3,
+      "quantiteExacte": 397,
+      "prixExact": 4000,
+      "prixBoutique": 5500,
+      "dateAjout": "2024-01-11",
+      "ajoutePar": 1,
+      "alerteSeuil": 25,
+      "quantiteRestante": 180,
+      "quantiteVendue": 217
+    },
+    {
+      "idProduit": 5,
+      "categorie": "Conserves",
+      "nomProduit": "Sardines en boîte",
+      "quantiteInitiale": 600,
+      "rebus": 4,
+      "quantiteExacte": 596,
+      "prixExact": 2000,
+      "prixBoutique": 3000,
+      "dateAjout": "2024-01-12",
+      "ajoutePar": 1,
+      "alerteSeuil": 30,
+      "quantiteRestante": 120,
+      "quantiteVendue": 476
+    }
+  ],
+  "ventes": [
+    {
+      "idVente": 1,
+      "idVendeur": 2,
+      "produitsVendus": [
+        { "idProduit": 1, "quantite": 5, "prixUnitaire": 10000, "prixTotal": 50000 },
+        { "idProduit": 2, "quantite": 3, "prixUnitaire": 4500, "prixTotal": 13500 }
+      ],
+      "totalVente": 63500,
+      "date": "2024-01-20T10:30:00",
+      "typePaiement": "espèces",
+      "statut": "completée"
+    },
+    {
+      "idVente": 2,
+      "idVendeur": 3,
+      "produitsVendus": [
+        { "idProduit": 3, "quantite": 2, "prixUnitaire": 15000, "prixTotal": 30000 },
+        { "idProduit": 5, "quantite": 10, "prixUnitaire": 3000, "prixTotal": 30000 }
+      ],
+      "totalVente": 60000,
+      "date": "2024-01-20T14:15:00",
+      "typePaiement": "mobile money",
+      "statut": "completée"
+    },
+    {
+      "idVente": 3,
+      "idVendeur": 2,
+      "produitsVendus": [
+        { "idProduit": 4, "quantite": 8, "prixUnitaire": 5500, "prixTotal": 44000 }
+      ],
+      "totalVente": 44000,
+      "date": "2024-01-19T16:45:00",
+      "typePaiement": "carte",
+      "statut": "completée"
+    }
+  ],
+  "transport": [
+    {
+      "idEnvoi": 1,
+      "produitsEnvoyes": [
+        { "idProduit": 1, "quantiteEnvoyee": 500 },
+        { "idProduit": 2, "quantiteEnvoyee": 300 },
+        { "idProduit": 3, "quantiteEnvoyee": 200 }
+      ],
+      "coutTransport": 250000,
+      "paysEnvoi": "France",
+      "paysReception": "Cameroun",
+      "dateEnvoi": "2024-01-10",
+      "dateReception": "2024-01-25",
+      "statut": "en transit",
+      "confirmeReception": false
+    },
+    {
+      "idEnvoi": 2,
+      "produitsEnvoyes": [
+        { "idProduit": 4, "quantiteEnvoyee": 400 },
+        { "idProduit": 5, "quantiteEnvoyee": 600 }
+      ],
+      "coutTransport": 225000,
+      "paysEnvoi": "France",
+      "paysReception": "Cameroun",
+      "dateEnvoi": "2024-01-15",
+      "dateReception": null,
+      "statut": "préparation",
+      "confirmeReception": false
+    }
+  ],
+  "depenses": [
+    {
+      "idDepense": 1,
+      "idVendeur": 2,
+      "typeDepense": "dédouanement",
+      "description": "Frais de douane pour l'envoi #1",
+      "montant": 75000,
+      "date": "2024-01-25",
+      "idEnvoiAssocie": 1
+    },
+    {
+      "idDepense": 2,
+      "idVendeur": 3,
+      "typeDepense": "logistique",
+      "description": "Transport local entrepôt",
+      "montant": 37500,
+      "date": "2024-01-20",
+      "idEnvoiAssocie": null
+    }
+  ]
+}
