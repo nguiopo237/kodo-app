@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { produitService, venteService } from '../../services/dataService';
+import FactureVente from '../../components/FactureVente';
 import './InterfaceVente.css';
 
 const InterfaceVente = () => {
@@ -12,6 +13,8 @@ const InterfaceVente = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [typePaiement, setTypePaiement] = useState('espèces');
+  const [showFacture, setShowFacture] = useState(false);
+  const [derniereVente, setDerniereVente] = useState(null);
 
   useEffect(() => {
     chargerProduits();
@@ -85,10 +88,11 @@ const InterfaceVente = () => {
 
     try {
       // Créer la vente
-      venteService.create({
+      const nouvelleVente = venteService.create({
         idVendeur: user.idUser,
         produitsVendus: panier.map(p => ({
           idProduit: p.idProduit,
+          nomProduit: p.nomProduit,
           quantite: p.quantite,
           prixUnitaire: p.prixUnitaire,
           prixTotal: p.prixTotal
@@ -109,8 +113,22 @@ const InterfaceVente = () => {
         }
       });
 
+      const panierData = [...panier];
       setPanier([]);
       chargerProduits();
+
+      // Préparer les données pour la facture
+      setDerniereVente({
+        ...nouvelleVente,
+        produitsVendus: panierData.map(p => ({
+          idProduit: p.idProduit,
+          nomProduit: p.nomProduit,
+          quantite: p.quantite,
+          prixUnitaire: p.prixUnitaire,
+          prixTotal: p.prixTotal
+        }))
+      });
+      setShowFacture(true);
       success('✅ Vente enregistrée avec succès !');
     } catch (error) {
       showError('❌ ' + error.message);
@@ -223,6 +241,18 @@ const InterfaceVente = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Facture */}
+      {showFacture && derniereVente && (
+        <FactureVente 
+          vente={derniereVente}
+          utilisateur={user}
+          onFermer={() => {
+            setShowFacture(false);
+            setDerniereVente(null);
+          }}
+        />
+      )}
     </div>
   );
 };

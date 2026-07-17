@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { venteService } from '../../services/venteService';
 import { dashboardService } from '../../services/dashboardService';
+import FactureVente from '../../components/FactureVente';
 import './MesVentes.css';
 
 const MesVentes = () => {
@@ -15,6 +16,8 @@ const MesVentes = () => {
   const [filterPeriode, setFilterPeriode] = useState('tout');
   const [selectedVente, setSelectedVente] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showFacture, setShowFacture] = useState(false);
+  const [selectedFactureVente, setSelectedFactureVente] = useState(null);
   const [stats, setStats] = useState({
     totalVentes: 0,
     totalCA: 0,
@@ -93,9 +96,39 @@ const MesVentes = () => {
     return matchSearch && matchStatut && matchPeriode;
   });
 
+  // Préparer les données d'une vente pour le composant FactureVente
+  const prepareVenteFacture = (vente) => {
+    // Utiliser produitsDetails s'il existe (enrichi avec nomProduit), sinon produitsVendus
+    const produits = vente.produitsDetails || vente.produitsVendus || [];
+    
+    return {
+      ...vente,
+      produitsVendus: produits.map(p => ({
+        idProduit: p.idProduit,
+        nomProduit: p.nomProduit || p.nom || 'Produit',
+        quantite: p.quantite,
+        prixUnitaire: p.prixUnitaire,
+        prixTotal: p.prixTotal || (p.prixUnitaire * p.quantite)
+      })),
+      typePaiement: vente.typePaiement,
+      totalVente: vente.totalVente,
+      vendeurNom: vente.vendeurNom || 'Vendeur'
+    };
+  };
+
   const handleVoirDetails = (vente) => {
     setSelectedVente(vente);
     setShowDetailModal(true);
+  };
+
+  const handleVoirFacture = (vente) => {
+    setSelectedFactureVente(prepareVenteFacture(vente));
+    setShowFacture(true);
+  };
+
+  const handleFermerFacture = () => {
+    setShowFacture(false);
+    setSelectedFactureVente(null);
   };
 
   const exportCSV = () => {
@@ -302,14 +335,23 @@ const MesVentes = () => {
                       {vente.statut === 'completée' ? '✅ Completée' : '❌ Annulée'}
                     </span>
                   </td>
-                  <td>
-                    <button 
-                      className="btn-details"
-                      onClick={() => handleVoirDetails(vente)}
-                      title="Voir les détails"
-                    >
-                      👁️
-                    </button>
+                  <td className="actions-cell">
+                    <div className="actions-group">
+                      <button 
+                        className="btn-action btn-details"
+                        onClick={() => handleVoirDetails(vente)}
+                        title="Voir les détails"
+                      >
+                        👁️
+                      </button>
+                      <button 
+                        className="btn-action btn-facture"
+                        onClick={() => handleVoirFacture(vente)}
+                        title="Voir la facture"
+                      >
+                        🧾
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -395,6 +437,15 @@ const MesVentes = () => {
             
             <div className="modal-footer">
               <button 
+                className="btn btn-primary btn-facture-footer" 
+                onClick={() => {
+                  setShowDetailModal(false);
+                  handleVoirFacture(selectedVente);
+                }}
+              >
+                🧾 Voir la facture
+              </button>
+              <button 
                 className="btn btn-secondary" 
                 onClick={() => setShowDetailModal(false)}
               >
@@ -403,6 +454,15 @@ const MesVentes = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Modal Facture */}
+      {showFacture && selectedFactureVente && (
+        <FactureVente 
+          vente={selectedFactureVente}
+          utilisateur={user}
+          onFermer={handleFermerFacture}
+        />
       )}
     </div>
   );

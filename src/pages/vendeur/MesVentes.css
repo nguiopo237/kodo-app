@@ -354,13 +354,21 @@
 }
 
 /* ============================================
-   BOUTON DÉTAILS
+   BOUTONS D'ACTION
    ============================================ */
-.btn-details {
+.actions-cell {
+  min-width: 90px;
+}
+
+.actions-group {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.btn-action {
   width: 36px;
   height: 36px;
-  background: #eff6ff;
-  color: #2563eb;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -371,9 +379,27 @@
   justify-content: center;
 }
 
+.btn-action:hover {
+  transform: scale(1.1);
+}
+
+.btn-details {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
 .btn-details:hover {
   background: #dbeafe;
-  transform: scale(1.1);
+}
+
+.btn-facture {
+  background: #f0fdf4;
+  color: #059669;
+}
+
+.btn-facture:hover {
+  background: #d1fae5;
+  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.25);
 }
 
 /* ============================================

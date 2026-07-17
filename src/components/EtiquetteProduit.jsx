@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import JsBarcode from 'jsbarcode';
+import html2pdf from 'html2pdf.js';
 import { formatCFA } from '../utils/formatters';
 import './EtiquetteProduit.css';
 
@@ -68,21 +69,105 @@ const EtiquetteProduit = ({ produit, taille = 'standard' }) => {
  */
 export const ImprimerEtiquettes = ({ produits, taille = 'standard', onClose }) => {
   const printRef = useRef(null);
+  const mountedRef = useRef(true);
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfProgress, setPdfProgress] = useState(0);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleImprimer = () => {
     window.print();
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!printRef.current) return;
+
+    // Attendre que les barcodes SVG soient bien rendus
+    await new Promise(resolve => setTimeout(resolve, 500));
+    if (!mountedRef.current) return;
+
+    setPdfLoading(true);
+    setPdfProgress(0);
+
+    const element = printRef.current;
+    const dateStr = new Date().toISOString().split('T')[0];
+    const count = produits.length;
+
+    const opt = {
+      margin: [5, 5, 5, 5],
+      filename: `etiquettes_${count}produits_${dateStr}.pdf`,
+      image: { type: 'jpeg', quality: 0.95 },
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        width: element.scrollWidth,
+        height: element.scrollHeight
+      },
+      jsPDF: { 
+        unit: 'mm', 
+        format: 'a4', 
+        orientation: 'portrait' 
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+    };
+
+    let lastProgress = 0;
+    const progressInterval = setInterval(() => {
+      lastProgress = Math.min(lastProgress + 15, 90);
+      if (mountedRef.current) {
+        setPdfProgress(lastProgress);
+      }
+    }, 200);
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+
+      clearInterval(progressInterval);
+      if (!mountedRef.current) return;
+
+      setPdfProgress(100);
+      await new Promise(resolve => setTimeout(resolve, 400));
+      if (!mountedRef.current) return;
+    } catch (error) {
+      console.error('Erreur génération PDF étiquettes:', error);
+    } finally {
+      clearInterval(progressInterval);
+      if (mountedRef.current) {
+        setPdfLoading(false);
+      }
+    }
   };
 
   return (
     <div className="print-container">
       <div className="print-toolbar no-print">
         <div className="print-toolbar-info">
-          <strong>{produits.length} etiquette(s)</strong>
-          <span>Taille: {taille === 'petit' ? 'Petite (40x30mm)' : 'Standard (60x40mm)'}</span>
+          <strong>{produits.length} étiquette(s)</strong>
+          <span>Taille: {taille === 'petit' ? 'Petite (40×30mm)' : 'Standard (60×40mm)'}</span>
         </div>
         <div className="print-toolbar-actions">
-          <button className="btn btn-secondary" onClick={onClose}>Fermer</button>
-          <button className="btn btn-primary" onClick={handleImprimer}>
+          <button className="btn btn-secondary" onClick={onClose} disabled={pdfLoading}>Fermer</button>
+          <button 
+            className="btn btn-download" 
+            onClick={handleDownloadPDF}
+            disabled={pdfLoading}
+          >
+            {pdfLoading ? (
+              <>
+                <span className="pdf-spinner"></span>
+                Génération... {pdfProgress}%
+              </>
+            ) : (
+              '📥 Télécharger PDF'
+            )}
+          </button>
+          <button className="btn btn-primary" onClick={handleImprimer} disabled={pdfLoading}>
             🖨️ Imprimer
           </button>
         </div>
