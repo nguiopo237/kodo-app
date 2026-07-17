@@ -14,6 +14,7 @@ const EnvoisTransport = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filtreStatut, setFiltreStatut] = useState('tous');
   const { success, error: showError } = useNotification();
+  const [editingEnvoi, setEditingEnvoi] = useState(null);
 
   const [formData, setFormData] = useState({
     paysEnvoi: 'France',
@@ -97,6 +98,22 @@ const EnvoisTransport = () => {
     }));
   };
 
+  const handleEdit = (envoi) => {
+    setEditingEnvoi(envoi);
+    setFormData({
+      paysEnvoi: envoi.paysEnvoi,
+      paysReception: envoi.paysReception,
+      coutTransport: envoi.coutTransport,
+      dateEnvoi: envoi.dateEnvoi || new Date().toISOString().split('T')[0],
+      dateReception: envoi.dateReception || '',
+      produitsEnvoyes: [...(envoi.produitsEnvoyes || [])],
+      statut: envoi.statut,
+      confirmeReception: envoi.confirmeReception || false,
+      quantiteRecue: envoi.quantiteRecue || null
+    });
+    setShowAjoutModal(true);
+  };
+
   const handleCreerEnvoi = (e) => {
     e.preventDefault();
     if (formData.produitsEnvoyes.length === 0) {
@@ -111,6 +128,41 @@ const EnvoisTransport = () => {
     try {
       const data = dashboardService.loadData();
       const transport = data.transport || [];
+
+      if (editingEnvoi) {
+        // Mode edition: mettre a jour l'envoi existant
+        const index = transport.findIndex(t => t.idEnvoi === editingEnvoi.idEnvoi);
+        if (index !== -1) {
+          transport[index] = {
+            ...transport[index],
+            paysEnvoi: formData.paysEnvoi,
+            paysReception: formData.paysReception,
+            coutTransport: formData.coutTransport,
+            dateEnvoi: formData.dateEnvoi || transport[index].dateEnvoi,
+            dateReception: formData.statut === 'reçu' || formData.statut === 'reçue'
+              ? (formData.dateReception || new Date().toISOString().split('T')[0])
+              : transport[index].dateReception,
+            produitsEnvoyes: formData.produitsEnvoyes.map(p => ({
+              idProduit: p.idProduit,
+              quantiteEnvoyee: p.quantiteEnvoyee
+            })),
+            statut: formData.statut,
+            confirmeReception: formData.statut === 'reçu' || formData.statut === 'reçue'
+          };
+          // Mise à jour du stock si le statut passe à reçu
+          if ((formData.statut === 'reçu' || formData.statut === 'reçue') &&
+              editingEnvoi.statut !== 'reçu' && editingEnvoi.statut !== 'reçue') {
+            majStockReception(transport[index], data);
+          }
+          dashboardService.saveData('transport', transport);
+          setShowAjoutModal(false);
+          resetForm();
+          chargerDonnees();
+          success(`Envoi #TR-${editingEnvoi.idEnvoi.toString().padStart(3, '0')} modifie avec succes !`);
+        }
+        return;
+      }
+
       const newId = Math.max(...transport.map(t => t.idEnvoi), 0) + 1;
 
       const nouvelEnvoi = {
@@ -141,7 +193,7 @@ const EnvoisTransport = () => {
       setShowAjoutModal(false);
       resetForm();
       chargerDonnees();
-      success(`Envoi #TR-${newId.toString().padStart(3, '0')} créé avec succès !`);
+      success(`Envoi #TR-${newId.toString().padStart(3, '0')} cree avec succes !`);
     } catch (error) {
       showError('Erreur: ' + error.message);
     }
@@ -209,6 +261,7 @@ const EnvoisTransport = () => {
   };
 
   const resetForm = () => {
+    setEditingEnvoi(null);
     setFormData({
       paysEnvoi: 'France',
       paysReception: 'Cameroun',
@@ -348,9 +401,12 @@ const EnvoisTransport = () => {
                 <div className="envoi-actions">
                   {envoi.statut !== 'reçu' && envoi.statut !== 'reçue' && (
                     <button className="btn-action recu" onClick={() => handleConfirmerReception(envoi)} title="Confirmer la reception">
-                      Reception
+                      ✓ Reception
                     </button>
                   )}
+                  <button className="btn-action modifier" onClick={() => handleEdit(envoi)} title="Modifier">
+                    ✏️ Modifier
+                  </button>
                   <button className="btn-action detail" onClick={() => setShowDetailModal(envoi)} title="Details">
                     Details
                   </button>
@@ -416,7 +472,7 @@ const EnvoisTransport = () => {
         <div className="modal-overlay" onClick={() => { setShowAjoutModal(false); resetForm(); }}>
           <div className="modal modal-lg" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Nouvel envoi</h2>
+              <h2>{editingEnvoi ? `✏️ Modifier envoi #TR-${editingEnvoi.idEnvoi.toString().padStart(3, '0')}` : 'Nouvel envoi'}</h2>
               <button className="modal-close" onClick={() => { setShowAjoutModal(false); resetForm(); }}>×</button>
             </div>
             <form onSubmit={handleCreerEnvoi}>
@@ -490,7 +546,9 @@ const EnvoisTransport = () => {
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" onClick={() => { setShowAjoutModal(false); resetForm(); }}>Annuler</button>
-                <button type="submit" className="btn btn-primary">Creer l'envoi</button>
+                <button type="submit" className="btn btn-primary">
+                  {editingEnvoi ? 'Enregistrer les modifications' : "Creer l'envoi"}
+                </button>
               </div>
             </form>
           </div>
