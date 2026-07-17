@@ -1,0 +1,472 @@
+.transport-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.transport-header {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.3) !important;
+}
+
+.transport-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 18px;
+  margin-bottom: 25px;
+}
+
+.stat-card-transport {
+  background: white;
+  border-radius: 14px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  border-left: 5px solid #6b7280;
+  transition: all 0.3s ease;
+}
+
+.stat-card-transport:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card-transport.total { border-left-color: #6b7280; }
+.stat-card-transport.preparation { border-left-color: #f59e0b; }
+.stat-card-transport.transit { border-left-color: #3b82f6; }
+.stat-card-transport.cout { border-left-color: #10b981; }
+
+.stat-icon-transport {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.stat-card-transport.total .stat-icon-transport { background: rgba(107, 114, 128, 0.1); }
+.stat-card-transport.preparation .stat-icon-transport { background: rgba(245, 158, 11, 0.1); }
+.stat-card-transport.transit .stat-icon-transport { background: rgba(59, 130, 246, 0.1); }
+.stat-card-transport.cout .stat-icon-transport { background: rgba(16, 185, 129, 0.1); }
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.envois-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 30px;
+}
+
+.envoi-card {
+  background: white;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.envoi-card:hover {
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.envoi-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 22px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.envoi-ref {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.envoi-id {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #1f2937;
+}
+
+.envoi-statut {
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.envoi-statut.preparation { background: #fef3c7; color: #92400e; }
+.envoi-statut.transit { background: #dbeafe; color: #1e40af; }
+.envoi-statut.recu { background: #d1fae5; color: #065f46; }
+
+.envoi-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-action.recu {
+  background: #d1fae5;
+  color: #065f46;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.btn-action.recu:hover {
+  background: #a7f3d0;
+  transform: scale(1.05);
+}
+
+.btn-action.detail {
+  background: #eff6ff;
+  color: #2563eb;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.btn-action.detail:hover {
+  background: #dbeafe;
+  transform: scale(1.05);
+}
+
+.envoi-body {
+  padding: 20px 22px;
+  display: flex;
+  gap: 30px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.envoi-itineraire {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 250px;
+}
+
+.itineraire-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.point-icon {
+  font-size: 2rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.point-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.point-label {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+}
+
+.point-info strong {
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.itineraire-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  max-width: 80px;
+}
+
+.line-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.line-dot.start { background: #f59e0b; }
+.line-dot.end { background: #10b981; }
+
+.line-bar {
+  flex: 1;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #10b981);
+  border-radius: 2px;
+}
+
+.envoi-infos {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 16px 24px;
+  flex-shrink: 0;
+}
+
+.info-item-transport {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.info-item-transport span {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  font-weight: 600;
+}
+
+.info-item-transport strong {
+  font-size: 0.9rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.section-divider {
+  margin: 20px 0 16px;
+  padding: 12px 0;
+  border-top: 2px solid #f1f5f9;
+}
+
+.section-divider h3 {
+  margin: 0;
+  color: #1f2937;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.ajout-produit-row {
+  display: flex;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 16px;
+}
+
+.quantite-group {
+  max-width: 120px;
+  flex-shrink: 0;
+}
+
+.btn-sm {
+  padding: 10px 18px !important;
+  font-size: 0.85rem !important;
+  height: 44px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.produits-envoyes-list {
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.produits-envoyes-list h4 {
+  margin: 0 0 10px;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.produits-envoyes-table {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.produit-envoi-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  font-size: 0.85rem;
+}
+
+.produit-envoi-nom {
+  color: #374151;
+  font-weight: 500;
+}
+
+.produit-envoi-qte {
+  color: #6b7280;
+}
+
+.btn-remove-small {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 0 2px;
+  line-height: 1;
+  transition: all 0.2s;
+}
+
+.btn-remove-small:hover {
+  color: #dc2626;
+  transform: scale(1.2);
+}
+
+.detail-itineraire {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.detail-point {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  padding: 14px;
+  background: #f8fafc;
+  border-radius: 10px;
+}
+
+.detail-icon {
+  font-size: 1.8rem;
+}
+
+.detail-dates {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.detail-date-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-date-item span {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.detail-date-item strong {
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.detail-produits-table {
+  margin-bottom: 16px;
+}
+
+.detail-produits-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.detail-produits-table th {
+  text-align: left;
+  padding: 10px 14px;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.8rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.detail-produits-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.badge-qte {
+  background: #eff6ff;
+  color: #2563eb;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.detail-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.modal-lg {
+  max-width: 720px !important;
+}
+
+@media (max-width: 1024px) {
+  .envoi-infos {
+    grid-template-columns: repeat(2, auto);
+  }
+  .form-grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .transport-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .envoi-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .envoi-infos {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .envoi-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .envoi-actions {
+    justify-content: flex-end;
+  }
+  .form-g

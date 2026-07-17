@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { backupService } from '../../services/backupService';
 import { syncService } from '../../services/syncService';
 import { dataService } from '../../services/dataService';
+import { useNotification } from '../../context/NotificationContext';
 import { formatCFA } from '../../utils/formatters';
 import './Parametres.css';
 
 const Parametres = () => {
-  const [message, setMessage] = useState('');
+  const { success, error: showError, info } = useNotification();
   const [loading, setLoading] = useState(false);
   const [shareLink, setShareLink] = useState('');
   const [showResetModal, setShowResetModal] = useState(false);
@@ -14,8 +15,7 @@ const Parametres = () => {
 
   const handleExport = () => {
     backupService.exporterDonnees();
-    setMessage('✅ Export terminé !');
-    setTimeout(() => setMessage(''), 3000);
+    success('✅ Fichier de sauvegarde téléchargé !');
   };
 
   const handleImport = (e) => {
@@ -25,11 +25,11 @@ const Parametres = () => {
     setLoading(true);
     backupService.importerDonnees(file)
       .then(() => {
-        setMessage('✅ Données importées avec succès !');
+        success('✅ Données importées avec succès ! Rechargement...');
         setTimeout(() => window.location.reload(), 1500);
       })
       .catch((error) => {
-        setMessage('❌ Erreur: ' + error.message);
+        showError('❌ ' + error.message);
       })
       .finally(() => setLoading(false));
   };
@@ -43,7 +43,7 @@ const Parametres = () => {
   const handleConfirmReset = async () => {
     setShowResetModal(false);
     await dataService.reinitialiser();
-    setMessage('✅ Données réinitialisées !');
+    success('🔄 Données réinitialisées ! Redémarrage...');
     setTimeout(() => window.location.reload(), 1500);
   };
 
@@ -56,8 +56,7 @@ const Parametres = () => {
     const link = syncService.genererLienPartage();
     setShareLink(link);
     navigator.clipboard.writeText(link);
-    setMessage('✅ Lien copié dans le presse-papier !');
-    setTimeout(() => setMessage(''), 3000);
+    info('🔗 Lien de partage copié dans le presse-papier !');
   };
 
   return (
@@ -117,12 +116,6 @@ const Parametres = () => {
           </button>
         </div>
       </div>
-
-      {message && (
-        <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
-          {message}
-        </div>
-      )}
 
       {/* Modal de confirmation de réinitialisation */}
       {showResetModal && resetSummary && (

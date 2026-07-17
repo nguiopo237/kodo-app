@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import { dataService, statsService } from '../../services/dataService';
 import { formatCFA } from '../../utils/formatters';
 import StatCard from '../../components/common/StatCard';
@@ -10,6 +11,7 @@ const DashboardAdmin = () => {
   const [stats, setStats] = useState({});
   const [ventesRecent, setVentesRecent] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { success } = useNotification();
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetSummary, setResetSummary] = useState(null);
 
@@ -66,6 +68,7 @@ const DashboardAdmin = () => {
     setShowResetModal(false);
     await dataService.reinitialiser();
     chargerDonnees();
+    success('🔄 Toutes les données ont été réinitialisées avec succès !');
   };
 
   const handleCancelReset = () => {

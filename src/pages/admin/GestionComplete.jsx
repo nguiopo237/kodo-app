@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { categorieService } from '../../services/categorieService';
 import { produitService } from '../../services/produitService';
 import { venteService } from '../../services/venteService';
+import { useNotification } from '../../context/NotificationContext';
 import './GestionComplete.css';
 
 const GestionComplete = () => {
@@ -18,7 +19,12 @@ const GestionComplete = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showDeleteProduitModal, setShowDeleteProduitModal] = useState(false);
     const [showDeleteVenteModal, setShowDeleteVenteModal] = useState(false);
+    const { success, error: showError } = useNotification();
     const [showEditProduitModal, setShowEditProduitModal] = useState(false);
+    const fileInputRef = useRef(null);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const [importData, setImportData] = useState([]);
+    const [importErrors, setImportErrors] = useState([]);
     const [editProduit, setEditProduit] = useState(null);
     const [editFormData, setEditFormData] = useState({
         categorie: '',
@@ -82,9 +88,9 @@ const GestionComplete = () => {
             setShowEditProduitModal(false);
             setEditProduit(null);
             chargerDonnees();
-            alert('✅ Produit modifié avec succès !');
+            success('✅ Produit modifié avec succès !');
         } catch (error) {
-            alert('❌ Erreur: ' + error.message);
+            showError('❌ ' + error.message);
         }
     };
 
@@ -122,6 +128,155 @@ const GestionComplete = () => {
         chargerDonnees();
     }, []);
 
+    // ============================================
+    // EXPORT CSV PRODUITS
+    // ============================================
+    const exportProduitsCSV = () => {
+        if (produits.length === 0) {
+            showError('Aucun produit à exporter');
+            return;
+        }
+
+        const bom = '\uFEFF';
+        const headers = 'Nom du produit;Catégorie;Stock restant;Seuil alerte;Prix achat (€);Prix vente (€);Marge %;Marge (€);Quantité vendue;Date ajout';
+        const rows = produits.map(p => {
+            const prixAchat = p.prixExact || 0;
+            const prixVente = p.prixBoutique || 0;
+            const margePct = prixAchat > 0 ? ((prixVente - prixAchat) / prixAchat * 100).toFixed(1) : (prixVente > 0 ? '100.0' : '0.0');
+            const margeEuro = prixVente - prixAchat;
+            return [
+                `"${p.nomProduit}"`,
+                `"${p.categorie || ''}"`,
+                p.quantiteRestante || 0,
+                p.alerteSeuil || 10,
+                prixAchat,
+                prixVente,
+                margePct,
+                margeEuro,
+                p.quantiteVendue || 0,
+                p.dateAjout || ''
+            ].join(';');
+        }).join('\n');
+
+        const csv = bom + headers + '\n' + rows;
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `produits_${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        success('Fichier CSV téléchargé avec succès !');
+    };
+
+    // ============================================
+    // IMPORT CSV PRODUITS
+    // ============================================
+    const handleFileSelect = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const text = event.target.result;
+            const lignes = text.split('\n').filter(l => l.trim());
+
+            if (lignes.length < 2) {
+                showError('Le fichier CSV est vide ou invalide');
+                return;
+            }
+
+            if (lignes[0].charCodeAt(0) === 0xFEFF) {
+                lignes[0] = lignes[0].slice(1);
+            }
+
+            const dataRows = lignes.slice(1);
+            const produitsAImporter = [];
+            const erreurs = [];
+
+            dataRows.forEach((ligne, index) => {
+                const cols = ligne.split(';').map(c => c.replace(/^"|"$/g, '').trim());
+                if (cols.length < 3 || !cols[0]) {
+                    erreurs.push(`Ligne ${index + 2}: Nom du produit manquant`);
+                    return;
+                }
+                const nom = cols[0];
+                const cat = cols[1] || 'Non catégorisé';
+                const stock = parseInt(cols[2]) || 0;
+                const seuil = parseInt(cols[3]) || 10;
+                const prixAchat = parseFloat(cols[4]) || 0;
+                const prixVente = parseFloat(cols[5]) || 0;
+
+                produitsAImporter.push({
+                    nomProduit: nom,
+                    categorie: cat,
+                    quantiteInitiale: Math.max(stock, 1),
+                    quantiteExacte: Math.max(stock, 1),
+                    rebus: 0,
+                    prixExact: prixAchat,
+                    prixBoutique: prixVente || Math.round(prixAchat * 1.3 / 100) * 100,
+                    alerteSeuil: seuil
+                });
+            });
+
+            setImportData(produitsAImporter);
+            setImportErrors(erreurs);
+
+            if (produitsAImporter.length > 0) {
+                setShowImportModal(true);
+            } else {
+                showError('Aucun produit valide trouvé dans le fichier');
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    };
+
+    const confirmImport = () => {
+        let successCount = 0;
+        let errorCount = 0;
+        const detailsErreurs = [];
+
+        importData.forEach((produit, index) => {
+            try {
+                const cats = categorieService.getStatsParCategorie().map(c => c.nom);
+                if (!cats.includes(produit.categorie)) {
+                    try {
+                        categorieService.ajouterCategorie({
+                            nom: produit.categorie,
+                            icon: '📦',
+                            couleur: '#6b7280',
+                            description: 'Importée depuis CSV'
+                        });
+                    } catch (catErr) {
+                        detailsErreurs.push(`Produit #${index + 1} "${produit.nomProduit}": erreur création catégorie - ${catErr.message}`);
+                        errorCount++;
+                        return;
+                    }
+                }
+                produitService.ajouterProduit(produit);
+                successCount++;
+            } catch (err) {
+                detailsErreurs.push(`Produit #${index + 1} "${produit.nomProduit}": ${err.message}`);
+                errorCount++;
+            }
+        });
+
+        setShowImportModal(false);
+        setImportData([]);
+        setImportErrors(detailsErreurs);
+        chargerDonnees();
+
+        if (errorCount > 0) {
+            showError(`${successCount} importé(s), ${errorCount} erreur(s). Consultez la console pour les détails.`);
+            console.warn('Erreurs import CSV:', detailsErreurs);
+        } else {
+            success(`${successCount} produit(s) importé(s) avec succès !`);
+        }
+    };
+
     // Gestion des catégories
     const handleCategorieSubmit = (e) => {
         e.preventDefault();
@@ -130,9 +285,9 @@ const GestionComplete = () => {
             setShowCategorieModal(false);
             setCategorieForm({ nom: '', description: '', couleur: '#10b981', icon: '🍎' });
             chargerDonnees();
-            alert('Catégorie ajoutée avec succès !');
+            success('✅ Catégorie ajoutée avec succès !');
         } catch (error) {
-            alert('Erreur: ' + error.message);
+            showError('❌ ' + error.message);
         }
     };
 
@@ -141,9 +296,9 @@ const GestionComplete = () => {
             categorieService.supprimerCategorie(selectedItem.id);
             setShowDeleteModal(false);
             chargerDonnees();
-            alert('Catégorie supprimée avec succès !');
+            success('🗑️ Catégorie supprimée avec succès !');
         } catch (error) {
-            alert('Erreur: ' + error.message);
+            showError('❌ ' + error.message);
         }
     };
 
@@ -152,7 +307,7 @@ const GestionComplete = () => {
         e.preventDefault();
 
         if (!produitForm.categorie || !produitForm.nomProduit || produitForm.quantiteInitiale < 1) {
-            alert('Veuillez remplir les champs obligatoires : Catégorie, Nom et Quantité');
+            showError('❌ Veuillez remplir les champs obligatoires : Catégorie, Nom et Quantité');
             return;
         }
 
@@ -176,9 +331,9 @@ const GestionComplete = () => {
             });
 
             chargerDonnees();
-            alert('✅ Produit ajouté avec succès !');
+            success('✅ Produit ajouté avec succès !');
         } catch (error) {
-            alert('❌ Erreur: ' + error.message);
+            showError('❌ ' + error.message);
         }
     };
 
@@ -191,17 +346,17 @@ const GestionComplete = () => {
             setSelectedProduit(null);
             setForceDelete(false);
             chargerDonnees();
-            alert('Produit supprimé avec succès !');
+            success('🗑️ Produit supprimé avec succès !');
         } catch (error) {
             if (error.message.includes('forcer la suppression')) {
-                if (window.confirm(error.message + '\n\nCette action supprimera également les lignes de ce produit dans les ventes.')) {
+                if (window.confirm(error.message + ' Cette action supprimera également les lignes de ce produit dans les ventes.')) {
                     setForceDelete(true);
                     setTimeout(() => {
                         handleDeleteProduit();
                     }, 100);
                 }
             } else {
-                alert('Erreur: ' + error.message);
+                showError('❌ ' + error.message);
             }
         }
     };
@@ -242,7 +397,7 @@ const GestionComplete = () => {
         e.preventDefault();
 
         if (selectedProduitsVente.length === 0) {
-            alert('Ajoutez au moins un produit à la vente');
+            showError('❌ Ajoutez au moins un produit à la vente');
             return;
         }
 
@@ -268,9 +423,9 @@ const GestionComplete = () => {
             setSelectedProduitsVente([]);
 
             chargerDonnees();
-            alert('Vente enregistrée avec succès !');
+            success('✅ Vente enregistrée avec succès !');
         } catch (error) {
-            alert('Erreur: ' + error.message);
+            showError('❌ ' + error.message);
         }
     };
 
@@ -286,9 +441,9 @@ const GestionComplete = () => {
             setShowDeleteVenteModal(false);
             setSelectedVente(null);
             chargerDonnees();
-            alert('Vente supprimée avec succès !');
+            success('🗑️ Vente supprimée avec succès !');
         } catch (error) {
-            alert('Erreur: ' + error.message);
+            showError('❌ ' + error.message);
         }
     };
 
@@ -300,9 +455,9 @@ const GestionComplete = () => {
         try {
             venteService.annulerVente(vente.idVente);
             chargerDonnees();
-            alert('Vente annulée avec succès !');
+            success('↩️ Vente annulée avec succès !');
         } catch (error) {
-            alert('Erreur: ' + error.message);
+            showError('❌ ' + error.message);
         }
     };
 
@@ -377,6 +532,19 @@ const GestionComplete = () => {
 
                 {activeTab === 'produits' && (
                     <>
+                        <button className="btn btn-export-csv" onClick={exportProduitsCSV} title="Exporter tous les produits en CSV">
+                            📥 Exporter CSV
+                        </button>
+                        <button className="btn btn-import-csv" onClick={() => fileInputRef.current?.click()} title="Importer des produits depuis un fichier CSV">
+                            📤 Importer CSV
+                        </button>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept=".csv"
+                            style={{ display: 'none' }}
+                            onChange={handleFileSelect}
+                        />
                         <button className="btn btn-primary" onClick={() => setShowProduitModal(true)}>
                             + Nouveau produit
                         </button>
@@ -624,6 +792,80 @@ const GestionComplete = () => {
                     </div>
                 )}
             </div>
+
+            {/* Modal Import CSV */}
+            {showImportModal && (
+                <div className="modal-overlay" onClick={() => { setShowImportModal(false); setImportData([]); setImportErrors([]); }}><div className="modal" onClick={(e) => e.stopPropagation()}>
+                          <div className="modal-header">
+                            <h2>📥 Importer des produits</h2>
+                            <button className="modal-close" onClick={() => { setShowImportModal(false); setImportData([]); setImportErrors([]); }}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="import-preview">
+                                <div className="import-summary">
+                                    <div className="import-stat">
+                                        <span className="import-stat-label">Produits à importer</span>
+                                        <strong className="import-stat-value">{importData.length}</strong>
+                                    </div>
+                                    {importErrors.length > 0 && (
+                                        <div className="import-stat warning">
+                                            <span className="import-stat-label">Erreurs détectées</span>
+                                            <strong className="import-stat-value">{importErrors.length}</strong>
+                                        </div>
+                                    )}
+                                </div>
+                                {importErrors.length > 0 && (
+                                    <div className="import-errors">
+                                        <h4>Erreurs ignorées</h4>
+                                        <ul>
+                                            {importErrors.map((err, i) => (
+                                                <li key={i}>{err}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                <div className="import-table-wrapper">
+                                    <table className="import-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Produit</th>
+                                                <th>Catégorie</th>
+                                                <th>Stock</th>
+                                                <th>Prix achat</th>
+                                                <th>Prix vente</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {importData.slice(0, 20).map((p, i) => (
+                                                <tr key={i}>
+                                                    <td><strong>{p.nomProduit}</strong></td>
+                                                    <td><span className="categorie-badge" style={{ background: '#6b7280' }}>{p.categorie}</span></td>
+                                                    <td>{p.quantiteInitiale}</td>
+                                                    <td>{p.prixExact.toLocaleString('fr-FR')} €</td>
+                                                    <td>{p.prixBoutique.toLocaleString('fr-FR')} €</td>
+                                                </tr>
+                                            ))}
+                                            {importData.length > 20 && (
+                                                <tr>
+                                                    <td colSpan="5" className="import-more">
+                                                        ... et {importData.length - 20} produit(s) supplémentaire(s)
+                                                    </td>
+                                                </tr>
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn btn-secondary" onClick={() => { setShowImportModal(false); setImportData([]); setImportErrors([]); }}>Annuler</button>
+                            <button className="btn btn-primary" onClick={confirmImport}>
+                                Importer {importData.length} produit(s)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Modals */}
             {/* Modal Catégorie */}

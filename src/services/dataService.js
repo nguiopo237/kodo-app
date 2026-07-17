@@ -262,7 +262,19 @@ export const dataService = {
         const totalProduits = produits?.length || 0;
         const totalDepenses = depenses?.reduce((sum, d) => sum + d.montant, 0) || 0;
         const totalTransport = transport?.reduce((sum, t) => sum + t.coutTransport, 0) || 0;
-        const benefices = totalCA - totalDepenses - totalTransport;
+        
+        // Calcul précis du bénéfice en incluant le coût d'achat des marchandises (COGS)
+        // Bénéfice = Somme de ((prixVente - prixAchat) * quantité) - Dépenses - Transport
+        let beneficeBrut = 0;
+        (ventes || []).forEach(vente => {
+            (vente.produitsVendus || []).forEach(item => {
+                const produit = produits.find(p => p.idProduit === item.idProduit);
+                const prixAchat = produit?.prixExact || 0;
+                const margeUnitaire = item.prixUnitaire - prixAchat;
+                beneficeBrut += margeUnitaire * item.quantite;
+            });
+        });
+        const benefices = beneficeBrut - totalDepenses - totalTransport;
         
         const aujourdhui = new Date().toDateString();
         const ventesAujourdhui = ventes?.filter(v => 

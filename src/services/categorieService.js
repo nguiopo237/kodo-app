@@ -2,9 +2,10 @@ import { dashboardService } from './dashboardService';
 
 export const categorieService = {
   getCategories: () => {
-    const stored = localStorage.getItem('kodomarket_categories');
-    if (stored) {
-      return JSON.parse(stored);
+    const data = dashboardService.loadData();
+    const stored = data.categories;
+    if (stored && stored.length > 0) {
+      return [...stored];
     }
 
     const defaultCategories = [
@@ -15,11 +16,12 @@ export const categorieService = {
       { id: 5, nom: 'Entretien', description: 'Produits d\'entretien', couleur: '#6366f1', icon: '🧹' }
     ];
 
-    localStorage.setItem('kodomarket_categories', JSON.stringify(defaultCategories));
+    // Sauvegarder les catégories par défaut via dashboardService (Firestore)
+    dashboardService.saveData('categories', defaultCategories);
     return defaultCategories;
   },
 
-  ajouterCategorie: (categorieData) => {
+  ajouterCategorie: async (categorieData) => {
     const categories = categorieService.getCategories();
     const newId = Math.max(...categories.map(c => c.id), 0) + 1;
 
@@ -30,25 +32,25 @@ export const categorieService = {
     };
 
     categories.push(nouvelleCategorie);
-    localStorage.setItem('kodomarket_categories', JSON.stringify(categories));
+    await dashboardService.saveData('categories', categories);
 
     return nouvelleCategorie;
   },
 
-  mettreAJourCategorie: (id, updates) => {
+  mettreAJourCategorie: async (id, updates) => {
     const categories = categorieService.getCategories();
     const index = categories.findIndex(c => c.id === id);
 
     if (index !== -1) {
       categories[index] = { ...categories[index], ...updates };
-      localStorage.setItem('kodomarket_categories', JSON.stringify(categories));
+      await dashboardService.saveData('categories', categories);
       return categories[index];
     }
 
     return null;
   },
 
-  supprimerCategorie: (id) => {
+  supprimerCategorie: async (id) => {
     const categories = categorieService.getCategories();
     const data = dashboardService.loadData();
     const produits = data.produits || [];
@@ -61,7 +63,7 @@ export const categorieService = {
     }
 
     const nouvellesCategories = categories.filter(c => c.id !== id);
-    localStorage.setItem('kodomarket_categories', JSON.stringify(nouvellesCategories));
+    await dashboardService.saveData('categories', nouvellesCategories);
 
     return true;
   },

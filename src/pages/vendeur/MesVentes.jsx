@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import { venteService } from '../../services/venteService';
 import { dashboardService } from '../../services/dashboardService';
 import './MesVentes.css';
 
 const MesVentes = () => {
   const { user } = useAuth();
+  const { success, error: showError } = useNotification();
   const [ventes, setVentes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -98,9 +100,10 @@ const MesVentes = () => {
 
   const exportCSV = () => {
     if (ventesFiltrees.length === 0) {
-      alert('Aucune donnée à exporter');
+      showError('❌ Aucune donnée à exporter');
       return;
     }
+    success('📥 Fichier CSV téléchargé avec succès !');
 
     const headers = ['ID', 'Date', 'Vendeur', 'Produits', 'Total', 'Paiement', 'Statut'];
     const rows = ventesFiltrees.map(v => [

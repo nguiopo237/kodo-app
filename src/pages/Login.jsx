@@ -1,27 +1,28 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import './Login.css';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
   const { login } = useAuth();
   const navigate = useNavigate();
+  const { error: showError, success } = useNotification();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
     setLoading(true);
 
     try {
       await login(username, password);
-      navigate('/');
+      success('✅ Connexion réussie ! Bienvenue sur KodoMarket.');
+      setTimeout(() => navigate('/'), 500);
     } catch (err) {
-      setError('Identifiants incorrects. Utilisez "admin" pour admin ou autre nom pour vendeur.');
+      showError('❌ ' + err.message);
       setLoading(false);
     }
   };
@@ -35,7 +36,6 @@ const Login = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="error-message">{error}</div>}
           
           <div className="form-group">
             <label htmlFor="username">Nom d'utilisateur</label>

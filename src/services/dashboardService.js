@@ -1,8 +1,79 @@
 import { initialData } from '../data/initialData';
+import { loadAllData, saveField, saveAllData, clearCache } from './firebaseService';
+
+// Cache mémoire pour les accès synchrones
+let memoryCache = null;
+let initPromise = null;
+
+/**
+ * Initialiser le cache depuis Firestore (appelé au démarrage de l'app)
+ */
+export const initFromFirestore = async () => {
+  if (initPromise) return initPromise;
+
+  initPromise = (async () => {
+    try {
+      // Charger depuis Firestore
+      const firestoreData = await loadAllData();
+
+      // Si Firestore a des données, les utiliser
+      if (firestoreData && Object.keys(firestoreData).length > 0) {
+        memoryCache = { ...firestoreData };
+        console.log('✅ Données chargées depuis Firestore');
+        return;
+      }
+
+      // Sinon, charger depuis localStorage (migration) ou initialData
+      console.log('Firestore vide, migration depuis localStorage...');
+      const localData = loadFromLocalStorage();
+      
+      if (localData && Object.keys(localData).length > 0) {
+        memoryCache = { ...localData };
+        await saveAllData(localData);
+        console.log('✅ Données migrées vers Firestore');
+      } else {
+        // Première utilisation : charger les données initiales
+        memoryCache = {};
+        const allKeys = [...Object.keys(initialData), 'categories'];
+        allKeys.forEach(key => {
+          if (initialData[key]) {
+            memoryCache[key] = JSON.parse(JSON.stringify(initialData[key]));
+          }
+        });
+        await saveAllData(memoryCache);
+        console.log('✅ Données initiales chargées dans Firestore');
+      }
+    } catch (error) {
+      console.warn('Erreur init Firestore, fallback localStorage:', error.message);
+      memoryCache = loadFromLocalStorage();
+    }
+  })();
+
+  return initPromise;
+};
+
+/**
+ * Charger depuis localStorage (fallback et migration)
+ */
+const loadFromLocalStorage = () => {
+  const data = {};
+  const allKeys = [...Object.keys(initialData), 'categories'];
+  allKeys.forEach(key => {
+    const stored = localStorage.getItem(`kodomarket_${key}`);
+    if (stored) {
+      try {
+        data[key] = JSON.parse(stored);
+      } catch (e) {
+        data[key] = initialData[key] || [];
+      }
+    }
+  });
+  return data;
+};
 
 export const dashboardService = {
   getStats: () => {
-    const data = dashboardService.loadData();
+    const data = memoryCache || loadFromLocalStorage();
     const ventes = data.ventes || [];
     const produits = data.produits || [];
     const stock = data.stock || [];
@@ -53,7 +124,7 @@ export const dashboardService = {
   },
 
   getVentesRecent: () => {
-    const data = dashboardService.loadData();
+    const data = memoryCache || loadFromLocalStorage();
     const ventes = data.ventes || [];
     const utilisateurs = data.utilisateurs || [];
     const produits = data.produits || [];
@@ -75,7 +146,7 @@ export const dashboardService = {
   },
 
   getProduitsPopulaires: () => {
-    const data = dashboardService.loadData();
+    const data = memoryCache || loadFromLocalStorage();
     const ventes = data.ventes || [];
     const produits = data.produits || [];
     const stock = data.stock || [];
@@ -104,7 +175,7 @@ export const dashboardService = {
   },
 
   getAlertes: () => {
-    const data = dashboardService.loadData();
+    const data = memoryCache || loadFromLocalStorage();
     const stock = data.stock || [];
     const produits = data.produits || [];
     const transport = data.transport || [];
@@ -112,7 +183,6 @@ export const dashboardService = {
     const alertes = [];
     const today = new Date();
 
-    // Alertes de stock faible
     stock.forEach(item => {
       if (item.quantiteRestante <= item.alerteSeuil) {
         const produit = produits.find(p => p.idProduit === item.idProduit);
@@ -125,7 +195,6 @@ export const dashboardService = {
       }
     });
 
-    // Alertes de transport en retard
     transport.forEach(envoi => {
       if (envoi.statut === 'en transit' && envoi.dateReception) {
         const dateReception = new Date(envoi.dateReception);
@@ -141,7 +210,6 @@ export const dashboardService = {
       }
     });
 
-    // Alerte de record de ventes - CORRECTION ICI
     const hier = new Date(today.getTime() - 86400000);
     const ventesHier = ventes.filter(v => {
       const dateVente = new Date(v.date);
@@ -162,56 +230,85 @@ export const dashboardService = {
     return alertes.slice(0, 4);
   },
 
-  // Liste de toutes les clés de données (pour loadData et initializeData)
   getAllKeys: () => {
     return [...Object.keys(initialData), 'categories'];
   },
 
-  initializeData: (force = false) => {
-    if (force || !localStorage.getItem('kodomarket_data_initialized')) {
+  /**
+   * Initialiser les données (async - Firestore)
+   */
+  initializeData: async (force = false) => {
+    if (!memoryCache || force) {
+      memoryCache = {};
       const allKeys = dashboardService.getAllKeys();
       allKeys.forEach(key => {
-        localStorage.removeItem(`kodomarket_${key}`);
-      });
-      allKeys.forEach(key => {
         if (initialData[key]) {
-          localStorage.setItem(`kodomarket_${key}`, JSON.stringify(initialData[key]));
+          memoryCache[key] = JSON.parse(JSON.stringify(initialData[key]));
         }
       });
-      localStorage.setItem('kodomarket_data_initialized', 'true');
-      console.log('Données initialisées avec succès');
+      await saveAllData(memoryCache);
+      console.log('✅ Données initialisées dans Firestore');
     }
   },
 
+  /**
+   * Charger les données (synchrone) - utilise le cache mémoire
+   */
   loadData: () => {
-    const data = {};
-    const allKeys = dashboardService.getAllKeys();
-    allKeys.forEach(key => {
-      const stored = localStorage.getItem(`kodomarket_${key}`);
-      data[key] = stored ? JSON.parse(stored) : (initialData[key] || []);
-    });
-    return data;
+    return memoryCache ? { ...memoryCache } : loadFromLocalStorage();
   },
 
-  saveData: (key, data) => {
-    localStorage.setItem(`kodomarket_${key}`, JSON.stringify(data));
+  /**
+   * Sauvegarder une clé (async - Firestore) + cache mémoire
+   */
+  saveData: async (key, data) => {
+    // Mettre à jour le cache mémoire
+    if (memoryCache) {
+      memoryCache[key] = data;
+    }
+
+    // Sauvegarder dans Firestore (async)
+    try {
+      await saveField(key, data);
+    } catch (error) {
+      console.warn('Erreur sauvegarde Firestore:', error.message);
+      // Fallback localStorage
+      localStorage.setItem(`kodomarket_${key}`, JSON.stringify(data));
+    }
   },
 
-  resetData: () => {
-    return new Promise((resolve) => {
-      const keys = [
-        'kodomarket_data_initialized',
-        'kodomarket_utilisateurs',
-        'kodomarket_produits',
-        'kodomarket_stock',
-        'kodomarket_ventes',
-        'kodomarket_transport',
-        'kodomarket_depenses',
-        'kodomarket_user'
-      ];
-      keys.forEach(key => localStorage.removeItem(key));
-      dashboardService.initializeData(true);
-      resolve();
+  /**
+   * Réinitialiser les données (Firestore + cache)
+   */
+  resetData: async () => {
+    clearCache();
+    memoryCache = null;
+    
+    // Nettoyer localStorage
+    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses'];
+    keys.forEach(key => {
+      localStorage.removeItem(`kodomarket_${key}`);
     });
+    localStorage.removeItem('kodomarket_user');
+
+    // Réinitialiser avec les données initiales
+    await dashboardService.initializeData(true);
+    return true;
+  },
+
+  /**
+   * Rafraîchir le cache depuis Firestore
+   */
+  refreshCache: async () => {
+    try {
+      const firestoreData = await loadAllData();
+      if (firestoreData && Object.keys(firestoreData).length > 0) {
+        memoryCache = { ...firestoreData };
+      }
+      return memoryCache ? { ...memoryCache } : {};
+    } catch (error) {
+      console.warn('Erreur refresh Firestore:', error.message);
+      return memoryCache ? { ...memoryCache } : {};
+    }
   }
 };

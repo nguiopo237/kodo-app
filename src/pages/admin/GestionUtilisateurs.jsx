@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardService } from '../../services/dashboardService';
+import { useNotification } from '../../context/NotificationContext';
 import './GestionUtilisateurs.css';
 
 const GestionUtilisateurs = () => {
@@ -13,6 +14,8 @@ const GestionUtilisateurs = () => {
   const [filterRole, setFilterRole] = useState('tous');
 
   // Formulaire d'ajout/modification
+  const { success, error: showError } = useNotification();
+
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -61,7 +64,7 @@ const GestionUtilisateurs = () => {
     e.preventDefault();
     
     if (!formData.username || !formData.password || !formData.nomComplet) {
-      alert('Veuillez remplir tous les champs obligatoires');
+      showError('❌ Veuillez remplir tous les champs obligatoires');
       return;
     }
 
@@ -71,7 +74,7 @@ const GestionUtilisateurs = () => {
       
       // Vérifier si l'utilisateur existe déjà
       if (users.find(u => u.username === formData.username)) {
-        alert('Ce nom d\'utilisateur existe déjà');
+        showError('❌ Ce nom d\'utilisateur existe déjà');
         return;
       }
 
@@ -95,9 +98,9 @@ const GestionUtilisateurs = () => {
       setShowModal(false);
       resetForm();
       chargerUtilisateurs();
-      alert('✅ Utilisateur ajouté avec succès !');
+      success('✅ Utilisateur ajouté avec succès !');
     } catch (error) {
-      alert('❌ Erreur: ' + error.message);
+      showError('❌ ' + error.message);
     }
   };
 
@@ -120,7 +123,7 @@ const GestionUtilisateurs = () => {
     e.preventDefault();
     
     if (!formData.nomComplet) {
-      alert('Veuillez remplir le nom complet');
+      showError('❌ Veuillez remplir le nom complet');
       return;
     }
 
@@ -150,17 +153,17 @@ const GestionUtilisateurs = () => {
         setShowEditModal(false);
         resetForm();
         chargerUtilisateurs();
-        alert('✅ Utilisateur modifié avec succès !');
+        success('✅ Utilisateur modifié avec succès !');
       }
     } catch (error) {
-      alert('❌ Erreur: ' + error.message);
+      showError('❌ ' + error.message);
     }
   };
 
   // Supprimer un utilisateur
   const handleDelete = (user) => {
     if (user.role === 'admin') {
-      alert('❌ Impossible de supprimer l\'administrateur principal');
+      showError('❌ Impossible de supprimer l\'administrateur principal');
       return;
     }
     setSelectedUser(user);
@@ -188,9 +191,9 @@ const GestionUtilisateurs = () => {
       setShowDeleteModal(false);
       setSelectedUser(null);
       chargerUtilisateurs();
-      alert('✅ Utilisateur supprimé avec succès !');
+      success('✅ Utilisateur supprimé avec succès !');
     } catch (error) {
-      alert('❌ Erreur: ' + error.message);
+      showError('❌ ' + error.message);
     }
   };
 

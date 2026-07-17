@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import { produitService, venteService } from '../../services/dataService';
 import './InterfaceVente.css';
 
 const InterfaceVente = () => {
   const { user } = useAuth();
+  const { success, error: showError } = useNotification();
   const [produits, setProduits] = useState([]);
   const [panier, setPanier] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -29,7 +31,7 @@ const InterfaceVente = () => {
     
     if (existant) {
       if (existant.quantite + 1 > produit.quantiteRestante) {
-        alert('Stock insuffisant !');
+        showError('❌ Stock insuffisant pour ce produit !');
         return;
       }
       setPanier(panier.map(p => 
@@ -60,7 +62,7 @@ const InterfaceVente = () => {
         const nouvelleQuantite = p.quantite + delta;
         if (nouvelleQuantite < 1) return p;
         if (produit && nouvelleQuantite > produit.quantiteRestante) {
-          alert('Stock insuffisant !');
+          showError('❌ Stock insuffisant pour ce produit !');
           return p;
         }
         return { ...p, quantite: nouvelleQuantite, prixTotal: nouvelleQuantite * p.prixUnitaire };
@@ -73,7 +75,7 @@ const InterfaceVente = () => {
 
   const finaliserVente = () => {
     if (panier.length === 0) {
-      alert('Le panier est vide');
+      showError('❌ Le panier est vide. Ajoutez des produits avant de finaliser.');
       return;
     }
 
@@ -109,9 +111,9 @@ const InterfaceVente = () => {
 
       setPanier([]);
       chargerProduits();
-      alert('✅ Vente enregistrée avec succès !');
+      success('✅ Vente enregistrée avec succès !');
     } catch (error) {
-      alert('❌ Erreur: ' + error.message);
+      showError('❌ ' + error.message);
     }
   };
 

@@ -801,12 +801,6 @@
 /* ============================================
    RESPONSIVE
    ============================================ */
-@media (max-width: 1024px) {
-  .filters-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
 @media (max-width: 768px) {
   .page-header {
     flex-direction: column;
@@ -1134,4 +1128,481 @@
 .status-badge.danger::before {
   background: #ef4444;
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
+}
+
+/* ============================================
+   MARGE (POURCENTAGE + FCFA)
+   ============================================ */
+.marge-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.marge-fcfa {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ============================================
+   BOUTON DUPLIQUER
+   ============================================ */
+.btn-action.copy {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+.btn-action.copy:hover {
+  background: #dcfce7;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25);
+}
+
+/* ============================================
+   LIGNE STOCK FAIBLE
+   ============================================ */
+.products-table tbody tr.row-low-stock td:first-child {
+  box-shadow: inset 3px 0 0 #ef4444;
+}
+
+.products-table tbody tr.row-low-stock:hover {
+  background: #fef2f2;
+}
+
+/* ============================================
+   VENTES INFO
+   ============================================ */
+.ventes-info strong {
+  font-size: 1rem;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+/* ============================================
+   SÉLECTEUR DE COLONNES
+   ============================================ */
+.column-selector-wrapper {
+  position: relative;
+}
+
+.btn-columns {
+  padding: 10px 18px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 2px solid #bbf7d0;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  height: 44px;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-columns:hover {
+  background: #dcfce7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+}
+
+.btn-columns.active {
+  background: #16a34a;
+  color: white;
+  border-color: #16a34a;
+}
+
+.column-selector-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: white;
+  border-radius: 14px;
+  padding: 12px 0;
+  min-width: 220px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  z-index: 100;
+  animation: dropIn 0.2s ease;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.column-selector-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 16px 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 4px;
+}
+
+.column-selector-header strong {
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+
+.column-selector-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.column-selector-link {
+  background: none;
+  border: none;
+  color: #10b981;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+  transition: color 0.2s;
+}
+
+.column-selector-link:hover {
+  color: #059669;
+  text-decoration: underline;
+}
+
+.column-selector-sep {
+  color: #d1d5db;
+  font-size: 0.75rem;
+}
+
+.column-selector-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  user-select: none;
+}
+
+.column-selector-item:hover {
+  background: #f8fafc;
+}
+
+.column-selector-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #10b981;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.column-selector-item span {
+  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 500;
+}
+
+/* ============================================
+   RESPONSIVE FILTRES AVEC COLONNES
+   ============================================ */
+@media (max-width: 1280px) {
+  .filters-grid {
+    grid-template-columns: 1fr 1fr auto;
+  }
+}
+
+@media (max-width: 1024px) {
+  .filters-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .column-selector-dropdown {
+    right: auto;
+    left: 0;
+    min-width: 200px;
+  }
+}
+
+/* ============================================
+   BOUTONS EXPORT / IMPORT CSV
+   ============================================ */
+.header-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.btn-export,
+.btn-import {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+.btn-export:hover,
+.btn-import:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.btn-export:active,
+.btn-import:active {
+  transform: translateY(0);
+}
+
+.btn-print-batch {
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  backdrop-filter: blur(4px);
+  white-space: nowrap;
+}
+
+.btn-print-batch:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+/* ============================================
+   MODAL LG (pour la selection de taille d'etiquette)
+   ============================================ */
+.modal-lg {
+  max-width: 560px;
+}
+
+/* ============================================
+   PRINT OVERLAY (plein ecran pour l'impression)
+   ============================================ */
+.print-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
+  z-index: 2000;
+  overflow-y: auto;
+  animation: fadeIn 0.3s ease;
+}
+
+/* ============================================
+   MODAL IMPORT CSV
+   ============================================ */
+.import-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.import-summary {
+  display: flex;
+  gap: 16px;
+}
+
+.import-stat {
+  background: #f0fdf4;
+  border-radius: 12px;
+  padding: 16px 20px;
+  flex: 1;
+  text-align: center;
+  border: 1px solid #bbf7d0;
+}
+
+.import-stat.warning {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.import-stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.import-stat-value {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #16a34a;
+}
+
+.import-stat.warning .import-stat-value {
+  color: #dc2626;
+}
+
+.import-errors {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 10px;
+  padding: 14px 18px;
+}
+
+.import-errors h4 {
+  margin: 0 0 10px 0;
+  color: #991b1b;
+  font-size: 0.9rem;
+}
+
+.import-errors ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.import-errors li {
+  color: #b91c1c;
+  font-size: 0.85rem;
+  margin-bottom: 4px;
+}
+
+.import-table-wrapper {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+}
+
+.import-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.import-table th {
+  background: #f8fafc;
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.78rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.import-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.88rem;
+  color: #1f2937;
+}
+
+.import-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.import-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.import-table .category-badge {
+  font-size: 0.75rem;
+  padding: 3px 10px;
+}
+
+.import-more {
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 0.85rem;
+  padding: 14px !important;
+}
+
+.import-table-wrapper::-webkit-scrollbar {
+  width: 5px;
+}
+
+.import-table-wrapper::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.import-table-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.import-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* ============================================
+   RESPONSIVE HEADER
+   ============================================ */
+@media (max-width: 768px) {
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn-export,
+  .btn-import,
+  .header-actions .btn-primary {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .import-summary {
+    flex-direction: column;
+  }
+
+  .import-table-wrapper {
+    max-height: 200px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .products-table {
+    font-size: 0.82rem;
+  }
+  .products-table th,
+  .products-table td {
+    padding: 12px 14px;
+  }
+  .product-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 1rem;
+  }
+  .stock-info {
+    min-width: 120px;
+  }
 }

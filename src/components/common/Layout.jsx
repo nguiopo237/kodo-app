@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import Notification from './Notification';
 import './Layout.css';
 
 const Layout = ({ children }) => {
@@ -81,6 +82,7 @@ const Layout = ({ children }) => {
         </div>
       </aside>
 
+      <Notification />
       <main className="main-content">
         <header className="main-header">
           <h1>Tableau de bord</h1>
