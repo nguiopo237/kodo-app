@@ -2,6 +2,23 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.rkpi-card { animation: fadeInUp 0.5s ease-out both; }
+.rapports-kpi > .rkpi-card:nth-child(1) { animation-delay: 0.05s; }
+.rapports-kpi > .rkpi-card:nth-child(2) { animation-delay: 0.1s; }
+.rapports-kpi > .rkpi-card:nth-child(3) { animation-delay: 0.15s; }
+.rapports-kpi > .rkpi-card:nth-child(4) { animation-delay: 0.2s; }
+.rapport-card { animation: fadeInUp 0.5s ease-out both; }
+.rapport-section:nth-child(1) .rapport-card { animation-delay: 0.1s; }
+.rapport-section:nth-child(2) .rapport-card { animation-delay: 0.2s; }
+.rapport-section:nth-child(3) .rapport-card { animation-delay: 0.3s; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .rapports-header {

@@ -1,0 +1,67 @@
+.compta-vendeur { max-width: 1400px; margin: 0 auto; }
+.compta-header { background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%) !important; box-shadow: 0 4px 20px rgba(139,92,246,0.3) !important; }
+.compta-header .btn-secondary { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3); }
+.compta-header .btn-secondary:hover { background: rgba(255,255,255,0.25); }
+.compta-kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; margin-bottom: 25px; }
+.kpi-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 22px 24px; display: flex; align-items: center; gap: 18px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); transition: all 0.3s; }
+.kpi-card:hover { transform: translateY(-4px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
+.kpi-icon { font-size: 2.2rem; width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; border-radius: 14px; flex-shrink: 0; }
+.kpi-card.revenue .kpi-icon { background: rgba(16,185,129,0.1); }
+.kpi-card.cost .kpi-icon { background: rgba(239,68,68,0.1); }
+.kpi-card.marge .kpi-icon { background: rgba(59,130,246,0.1); }
+.kpi-card.profit .kpi-icon { background: rgba(139,92,246,0.1); }
+.kpi-content { flex: 1; }
+.kpi-label { display: block; font-size: 0.78rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 4px; }
+.kpi-value { display: block; font-size: 1.4rem; font-weight: 700; color: #1f2937; }
+.kpi-sub { display: block; font-size: 0.8rem; color: #9ca3af; margin-top: 2px; }
+.compta-subkpi { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 25px; }
+.subkpi-item { background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.18); border-radius: 12px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+.subkpi-item span { font-size: 0.85rem; color: #6b7280; }
+.subkpi-item strong { font-size: 0.95rem; color: #1f2937; }
+.compta-tabs { display: flex; gap: 4px; margin-bottom: 25px; background: rgba(255,255,255,0.5); border-radius: 12px; padding: 4px; }
+.compta-tab { flex: 1; padding: 12px 20px; border: none; background: transparent; color: #6b7280; font-weight: 600; font-size: 0.9rem; cursor: pointer; border-radius: 10px; transition: all 0.3s; font-family: inherit; }
+.compta-tab:hover { background: rgba(255,255,255,0.5); color: #374151; }
+.compta-tab.active { background: white; color: #7c3aed; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+.compta-section { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+.compta-card { background: rgba(255,255,255,0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.18); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.compta-card.full-width { grid-column: 1 / -1; }
+.compta-card h3 { font-size: 1.05rem; color: #1f2937; margin: 0 0 16px; padding-bottom: 12px; border-bottom: 2px solid #f1f5f9; }
+.resume-table { display: flex; flex-direction: column; }
+.resume-row { display: grid; grid-template-columns: 1fr auto auto; gap: 20px; padding: 12px 0; border-bottom: 1px solid #f9fafb; }
+.resume-row.header { font-size: 0.75rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; border-bottom: 2px solid #e2e8f0; }
+.resume-row span { color: #6b7280; font-size: 0.9rem; }
+.resume-row strong { font-size: 0.95rem; text-align: right; }
+.resume-row .negative { color: #dc2626; }
+.resume-row .positive { color: #059669; }
+.resume-row.total-row { background: #f8fafc; border-radius: 8px; padding: 12px; margin: 4px 0; }
+.resume-row.final-row { background: linear-gradient(135deg, #f0fdf4, #ecfdf5); border-radius: 8px; padding: 14px; margin-top: 4px; border: 1px solid #bbf7d0; }
+.resume-row.final-row span { font-weight: 600; }
+.depenses-table { width: 100%; border-collapse: collapse; }
+.depenses-table th { text-align: left; padding: 12px 14px; color: #6b7280; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; border-bottom: 2px solid #e2e8f0; }
+.depenses-table td { padding: 12px 14px; border-bottom: 1px solid #f1f5f9; }
+.depenses-table tbody tr:hover { background: #f8fafc; }
+.type-badge { padding: 4px 10px; background: #f1f5f9; border-radius: 20px; font-size: 0.82rem; color: #475569; }
+.evolution-chart { display: flex; align-items: flex-end; gap: 12px; height: 200px; padding: 20px 0; }
+.chart-bar-group { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; height: 100%; }
+.chart-bar-container { flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+.chart-bar { width: 60%; min-height: 4px; background: linear-gradient(180deg, #8b5cf6, #7c3aed); border-radius: 6px 6px 0 0; transition: height 0.5s ease; position: relative; }
+.chart-bar-value { position: absolute; top: -24px; left: 50%; transform: translateX(-50%); font-size: 0.72rem; color: #6b7280; white-space: nowrap; }
+.chart-label { font-size: 0.78rem; color: #6b7280; text-align: center; }
+.perf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.perf-item { padding: 16px; background: #f8fafc; border-radius: 12px; }
+.perf-label { display: block; font-size: 0.78rem; color: #6b7280; margin-bottom: 4px; }
+.perf-value { font-size: 1.2rem; color: #1f2937; }
+.ventes-liste { display: flex; flex-direction: column; gap: 10px; }
+.vente-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: #f8fafc; border-radius: 10px; transition: background 0.2s; }
+.vente-item:hover { background: #f1f5f9; }
+.vente-info { display: flex; flex-direction: column; gap: 2px; }
+.vente-info strong { font-size: 0.9rem; color: #1f2937; }
+.vente-info span { font-size: 0.8rem; color: #6b7280; }
+.vente-montant { font-weight: 700; color: #059669; font-size: 0.95rem; }
+.empty-text { color: #9ca3af; text-align: center; padding: 30px; }
+.empty-state { text-align: center; padding: 50px 20px; }
+.empty-icon { font-size: 3.5rem; opacity: 0.3; margin-bottom: 14px; }
+.empty-state h3 { color: #1f2937; font-size: 1.1rem; margin-bottom: 6px; }
+.empty-state p { color: #6b7280; }
+@media (max-width: 768px) { .compta-section { grid-template-columns: 1fr; } .compta-kpi-grid { grid-template-columns: 1fr 1fr; } .perf-grid { grid-template-columns: 1fr; } .resume-row { grid-template-columns: 1fr auto; gap: 10px; } .resume-row span:nth-child(3) { display: none; } }
+@media (max-width: 480px) { .compta-kpi-grid { grid-template-columns: 1fr; } }

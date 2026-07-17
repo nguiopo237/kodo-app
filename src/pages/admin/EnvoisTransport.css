@@ -2,6 +2,24 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.stat-card-transport { animation: fadeInUp 0.5s ease-out both; }
+.transport-stats > .stat-card-transport:nth-child(1) { animation-delay: 0.05s; }
+.transport-stats > .stat-card-transport:nth-child(2) { animation-delay: 0.1s; }
+.transport-stats > .stat-card-transport:nth-child(3) { animation-delay: 0.15s; }
+.transport-stats > .stat-card-transport:nth-child(4) { animation-delay: 0.2s; }
+.envoi-card { animation: fadeInUp 0.5s ease-out both; }
+.envois-list > .envoi-card:nth-child(1) { animation-delay: 0.1s; }
+.envois-list > .envoi-card:nth-child(2) { animation-delay: 0.15s; }
+.envois-list > .envoi-card:nth-child(3) { animation-delay: 0.2s; }
+.envois-list > .envoi-card:nth-child(4) { animation-delay: 0.25s; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .transport-header {

@@ -146,7 +146,12 @@ const InterfaceVente = () => {
   );
 
   if (loading) {
-    return <div className="loading">Chargement des produits...</div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Chargement des produits...</p>
+      </div>
+    );
   }
 
   return (

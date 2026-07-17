@@ -81,7 +81,12 @@ const DashboardAdmin = () => {
     : 0;
 
   if (loading) {
-    return <div className="loading">Chargement...</div>;
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner"></div>
+        <p>Chargement du tableau de bord...</p>
+      </div>
+    );
   }
 
   return (

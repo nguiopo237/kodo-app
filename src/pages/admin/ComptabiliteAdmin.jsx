@@ -88,7 +88,7 @@ const ComptabiliteAdmin = () => {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
-        <p>Chargement des donnees comptables...</p>
+        <p>Chargement des données comptables...</p>
       </div>
     );
   }

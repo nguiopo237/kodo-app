@@ -2,6 +2,28 @@
   max-width: 1400px;
   margin: 0 auto;
   padding: 0;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.tab-btn { animation: fadeInUp 0.5s ease-out both; }
+.tab-btn:nth-child(1) { animation-delay: 0.05s; }
+.tab-btn:nth-child(2) { animation-delay: 0.1s; }
+.tab-btn:nth-child(3) { animation-delay: 0.15s; }
+.tab-btn:nth-child(4) { animation-delay: 0.2s; }
+.categorie-card { animation: fadeInUp 0.5s ease-out both; }
+.categories-grid > .categorie-card:nth-child(1) { animation-delay: 0.1s; }
+.categories-grid > .categorie-card:nth-child(2) { animation-delay: 0.15s; }
+.categories-grid > .categorie-card:nth-child(3) { animation-delay: 0.2s; }
+.vente-stat-card { animation: fadeInUp 0.5s ease-out both; }
+.ventes-stats > .vente-stat-card:nth-child(1) { animation-delay: 0.05s; }
+.ventes-stats > .vente-stat-card:nth-child(2) { animation-delay: 0.1s; }
+.ventes-stats > .vente-stat-card:nth-child(3) { animation-delay: 0.15s; }
+.ventes-stats > .vente-stat-card:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .page-header {
