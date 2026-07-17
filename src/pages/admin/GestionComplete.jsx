@@ -3,6 +3,7 @@ import { categorieService } from '../../services/categorieService';
 import { produitService } from '../../services/produitService';
 import { venteService } from '../../services/venteService';
 import { useNotification } from '../../context/NotificationContext';
+import BarcodeCell from '../../components/BarcodeCell';
 import './GestionComplete.css';
 
 const GestionComplete = () => {
@@ -29,6 +30,7 @@ const GestionComplete = () => {
     const [editFormData, setEditFormData] = useState({
         categorie: '',
         nomProduit: '',
+        codeBarre: '',
         quantiteInitiale: 0,
         rebus: 0,
         prixExact: 0,
@@ -45,18 +47,21 @@ const GestionComplete = () => {
     const [produitForm, setProduitForm] = useState({
         categorie: '',
         nomProduit: '',
+        codeBarre: '',
         quantiteInitiale: 1,
         rebus: 0,
         prixExact: 0,
         prixBoutique: 0,
         alerteSeuil: 10
     });
+
     // Ouvrir le modal de modification
     const handleEditProduit = (produit) => {
         setEditProduit(produit);
         setEditFormData({
             categorie: produit.categorie,
             nomProduit: produit.nomProduit,
+            codeBarre: produit.codeBarre || '',
             quantiteInitiale: produit.quantiteInitiale,
             rebus: produit.rebus || 0,
             prixExact: produit.prixExact || 0,
@@ -77,6 +82,7 @@ const GestionComplete = () => {
             produitService.mettreAJourProduit(editProduit.idProduit, {
                 categorie: editFormData.categorie,
                 nomProduit: editFormData.nomProduit,
+                codeBarre: editFormData.codeBarre,
                 quantiteInitiale: editFormData.quantiteInitiale,
                 rebus: editFormData.rebus,
                 quantiteExacte: quantiteExacte,
@@ -463,7 +469,8 @@ const GestionComplete = () => {
 
     const produitsFiltres = produits.filter(produit =>
         produit.nomProduit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        produit.categorie.toLowerCase().includes(searchTerm.toLowerCase())
+        produit.categorie.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (produit.codeBarre && produit.codeBarre.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     if (loading) {
@@ -617,6 +624,7 @@ const GestionComplete = () => {
                                 <tr>
                                     <th>Produit</th>
                                     <th>Catégorie</th>
+                                    <th>Code-barres</th>
                                     <th>Stock</th>
                                     <th>Prix</th>
                                     <th>Ventes</th>
@@ -642,6 +650,9 @@ const GestionComplete = () => {
                                             <span className="categorie-badge" style={{ background: produit.categorieCouleur || '#10b981' }}>
                                                 {produit.categorie}
                                             </span>
+                                        </td>
+                                        <td>
+                                            <BarcodeCell produit={produit} />
                                         </td>
                                         <td>
                                             <div className="stock-indicator">
@@ -965,6 +976,17 @@ const GestionComplete = () => {
                                 </div>
 
                                 <div className="form-group">
+                                    <label>Code-barres</label>
+                                    <input
+                                        type="text"
+                                        value={produitForm.codeBarre}
+                                        onChange={(e) => setProduitForm({ ...produitForm, codeBarre: e.target.value })}
+                                        placeholder="KODO-XXXX (laissez vide pour auto)"
+                                    />
+                                    <small>Laissez vide pour generer automatiquement</small>
+                                </div>
+
+                                <div className="form-group">
                                     <label>Quantité initiale *</label>
                                     <input
                                         type="number"
@@ -1260,6 +1282,16 @@ const GestionComplete = () => {
                 onChange={(e) => setEditFormData({...editFormData, nomProduit: e.target.value})}
                 required
                 placeholder="Ex: Riz Basmati 5kg"
+              />
+            </div>
+            
+            <div className="form-group">
+              <label>Code-barres</label>
+              <input
+                type="text"
+                value={editFormData.codeBarre}
+                onChange={(e) => setEditFormData({...editFormData, codeBarre: e.target.value})}
+                placeholder="KODO-XXXX"
               />
             </div>
             

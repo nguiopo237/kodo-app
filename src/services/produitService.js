@@ -1,5 +1,6 @@
 import { dashboardService } from './dashboardService';
 import { categorieService } from './categorieService';
+import { genererCodeBarre } from '../components/EtiquetteProduit';
 
 export const produitService = {
   getProduits: () => {
@@ -13,6 +14,7 @@ export const produitService = {
       const categorieInfo = categories.find(c => c.nom === produit.categorie);
       return {
         ...produit,
+        codeBarre: produit.codeBarre || genererCodeBarre(produit.idProduit),
         quantiteRestante: stockInfo?.quantiteRestante || 0,
         quantiteVendue: stockInfo?.quantiteVendue || 0,
         alerteSeuil: stockInfo?.alerteSeuil || 10,
@@ -54,6 +56,7 @@ export const produitService = {
       ...defaults,
       ...produitData,
       idProduit: newId,
+      codeBarre: produitData.codeBarre || genererCodeBarre(newId),
       quantiteExacte: produitData.quantiteExacte || (produitData.quantiteInitiale - (produitData.rebus || 0))
     };
 

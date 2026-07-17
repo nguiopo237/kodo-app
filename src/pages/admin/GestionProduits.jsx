@@ -4,6 +4,7 @@ import { categorieService } from '../../services/categorieService';
 import { useNotification } from '../../context/NotificationContext';
 import { formatCFA } from '../../utils/formatters';
 import { ImprimerEtiquettes, genererCodeBarre } from '../../components/EtiquetteProduit';
+import BarcodeCell from '../../components/BarcodeCell';
 import './GestionProduits.css';
 
 const GestionProduits = () => {
@@ -34,6 +35,7 @@ const GestionProduits = () => {
   const emptyForm = {
     categorie: '',
     nomProduit: '',
+    codeBarre: '',
     quantiteInitiale: 1,
     rebus: 0,
     prixExact: 0,
@@ -62,7 +64,8 @@ const GestionProduits = () => {
   const produitsFiltres = produits.filter(p => {
     const matchSearch = !searchTerm ||
       p.nomProduit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.categorie?.toLowerCase().includes(searchTerm.toLowerCase());
+      p.categorie?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (p.codeBarre && p.codeBarre.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchCat = !filterCategorie || p.categorie === filterCategorie;
     const matchStock = filterStock === 'tous' ||
       (filterStock === 'faible' && p.quantiteRestante <= p.alerteSeuil) ||
@@ -113,6 +116,7 @@ const GestionProduits = () => {
     setEditForm({
       categorie: produit.categorie || '',
       nomProduit: produit.nomProduit || '',
+      codeBarre: produit.codeBarre || '',
       quantiteInitiale: produit.quantiteInitiale || 1,
       rebus: produit.rebus || 0,
       prixExact: produit.prixExact || 0,
@@ -353,6 +357,7 @@ const GestionProduits = () => {
   const COLUMNS = [
     { key: 'produit', label: 'Produit', defaultVisible: true },
     { key: 'categorie', label: 'Catégorie', defaultVisible: true },
+    { key: 'codeBarre', label: 'Code-barres', defaultVisible: true },
     { key: 'stock', label: 'Stock', defaultVisible: true },
     { key: 'prixAchat', label: 'Prix achat', defaultVisible: true },
     { key: 'prixVente', label: 'Prix vente', defaultVisible: true },
@@ -531,7 +536,7 @@ const GestionProduits = () => {
             <label>Rechercher</label>
             <input
               type="text"
-              placeholder="Produit, categorie..."
+              placeholder="Produit, categorie, code-barres..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -637,6 +642,11 @@ const GestionProduits = () => {
                         </span>
                       </td>
                     )}
+                    {visibleColumns['codeBarre'] && (
+                      <td>
+                        <BarcodeCell produit={produit} />
+                      </td>
+                    )}
                     {visibleColumns['stock'] && (
                       <td>
                         <div className="stock-info">
@@ -733,6 +743,11 @@ const GestionProduits = () => {
                     <input type="text" name="nomProduit" value={formData.nomProduit} onChange={handleInputChange} placeholder="Ex: Riz Basmati 5kg" required />
                   </div>
                   <div className="form-group">
+                    <label>Code-barres</label>
+                    <input type="text" name="codeBarre" value={formData.codeBarre} onChange={handleInputChange} placeholder="KODO-XXXX (laissez vide pour auto)" />
+                    <small>Laissez vide pour generer automatiquement</small>
+                  </div>
+                  <div className="form-group">
                     <label>Quantite initiale *</label>
                     <input type="number" name="quantiteInitiale" value={formData.quantiteInitiale} onChange={handleInputChange} min="1" required />
                   </div>
@@ -803,6 +818,10 @@ const GestionProduits = () => {
                   <div className="form-group">
                     <label>Nom du produit *</label>
                     <input type="text" name="nomProduit" value={editForm.nomProduit} onChange={handleEditChange} required />
+                  </div>
+                  <div className="form-group">
+                    <label>Code-barres</label>
+                    <input type="text" name="codeBarre" value={editForm.codeBarre} onChange={handleEditChange} placeholder="KODO-XXXX" />
                   </div>
                   <div className="form-group">
                     <label>Quantite initiale</label>

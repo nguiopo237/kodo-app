@@ -18,7 +18,7 @@ export const initFromFirestore = async () => {
 
       // Si Firestore a des données, les utiliser
       if (firestoreData && Object.keys(firestoreData).length > 0) {
-        memoryCache = { ...firestoreData };
+        memoryCache = { ...firestoreData };  
         console.log('✅ Données chargées depuis Firestore');
         return;
       }

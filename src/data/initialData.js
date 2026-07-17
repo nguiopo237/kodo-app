@@ -6,11 +6,11 @@ export const initialData = {
   ],
   
   produits: [
-    { idProduit: 1, categorie: "Alimentation", nomProduit: "Riz Basmati 5kg", quantiteInitiale: 500, rebus: 5, quantiteExacte: 495, prixExact: 7500, prixBoutique: 10000, dateAjout: "2024-01-10", ajoutePar: 1 },
-    { idProduit: 2, categorie: "Alimentation", nomProduit: "Huile végétale 2L", quantiteInitiale: 300, rebus: 2, quantiteExacte: 298, prixExact: 3500, prixBoutique: 4500, dateAjout: "2024-01-10", ajoutePar: 1 },
-    { idProduit: 3, categorie: "Boissons", nomProduit: "Café Arabica 1kg", quantiteInitiale: 200, rebus: 1, quantiteExacte: 199, prixExact: 12500, prixBoutique: 15000, dateAjout: "2024-01-11", ajoutePar: 1 },
-    { idProduit: 4, categorie: "Alimentation", nomProduit: "Sucre cristal 5kg", quantiteInitiale: 400, rebus: 3, quantiteExacte: 397, prixExact: 4000, prixBoutique: 5500, dateAjout: "2024-01-11", ajoutePar: 1 },
-    { idProduit: 5, categorie: "Conserves", nomProduit: "Sardines en boîte", quantiteInitiale: 600, rebus: 4, quantiteExacte: 596, prixExact: 2000, prixBoutique: 3000, dateAjout: "2024-01-12", ajoutePar: 1 }
+    { idProduit: 1, codeBarre: "KODO-0001", categorie: "Alimentation", nomProduit: "Riz Basmati 5kg", quantiteInitiale: 500, rebus: 5, quantiteExacte: 495, prixExact: 7500, prixBoutique: 10000, dateAjout: "2024-01-10", ajoutePar: 1 },
+    { idProduit: 2, codeBarre: "KODO-0002", categorie: "Alimentation", nomProduit: "Huile végétale 2L", quantiteInitiale: 300, rebus: 2, quantiteExacte: 298, prixExact: 3500, prixBoutique: 4500, dateAjout: "2024-01-10", ajoutePar: 1 },
+    { idProduit: 3, codeBarre: "KODO-0003", categorie: "Boissons", nomProduit: "Café Arabica 1kg", quantiteInitiale: 200, rebus: 1, quantiteExacte: 199, prixExact: 12500, prixBoutique: 15000, dateAjout: "2024-01-11", ajoutePar: 1 },
+    { idProduit: 4, codeBarre: "KODO-0004", categorie: "Alimentation", nomProduit: "Sucre cristal 5kg", quantiteInitiale: 400, rebus: 3, quantiteExacte: 397, prixExact: 4000, prixBoutique: 5500, dateAjout: "2024-01-11", ajoutePar: 1 },
+    { idProduit: 5, codeBarre: "KODO-0005", categorie: "Conserves", nomProduit: "Sardines en boîte", quantiteInitiale: 600, rebus: 4, quantiteExacte: 596, prixExact: 2000, prixBoutique: 3000, dateAjout: "2024-01-12", ajoutePar: 1 }
   ],
   
   stock: [

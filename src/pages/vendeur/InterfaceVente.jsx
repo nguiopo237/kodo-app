@@ -3,6 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { produitService, venteService } from '../../services/dataService';
 import FactureVente from '../../components/FactureVente';
+import { genererCodeBarre } from '../../components/EtiquetteProduit';
+import BarcodeScanner from '../../components/BarcodeScanner';
 import './InterfaceVente.css';
 
 const InterfaceVente = () => {
@@ -15,6 +17,7 @@ const InterfaceVente = () => {
   const [typePaiement, setTypePaiement] = useState('espèces');
   const [showFacture, setShowFacture] = useState(false);
   const [derniereVente, setDerniereVente] = useState(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
     chargerProduits();
@@ -135,6 +138,38 @@ const InterfaceVente = () => {
     }
   };
 
+  // ============================================
+  // SCAN CODE-BARRES
+  // ============================================
+  const handleScanDetect = (codeBarre) => {
+    setShowScanner(false);
+
+    // Chercher le produit par code-barres exact
+    let produit = produits.find(p => p.codeBarre === codeBarre);
+
+    // Essayer avec le format KODO-XXXX
+    if (!produit) {
+      const codeFormate = codeBarre.startsWith('KODO-')
+        ? codeBarre
+        : 'KODO-' + String(codeBarre).padStart(4, '0');
+      produit = produits.find(p => p.codeBarre === codeFormate);
+    }
+
+    // Essayer avec ID simple
+    if (!produit && /^\\d+$/.test(codeBarre)) {
+      const id = parseInt(codeBarre, 10);
+      produit = produits.find(p => p.idProduit === id || genererCodeBarre(p.idProduit) === codeBarre);
+    }
+
+    if (produit) {
+      ajouterAuPanier(produit);
+      setSearchTerm('');
+      success('✅ Produit ajoute : ' + produit.nomProduit);
+    } else {
+      showError('❌ Aucun produit trouve avec ce code-barres : ' + codeBarre);
+    }
+  };
+
   const formatCFA = (montant) => {
     if (!montant && montant !== 0) return '0 FCFA';
     return `${montant.toLocaleString('fr-FR')} FCFA`;
@@ -142,7 +177,8 @@ const InterfaceVente = () => {
 
   const produitsFiltres = produits.filter(produit =>
     produit.nomProduit.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    produit.categorie.toLowerCase().includes(searchTerm.toLowerCase())
+    produit.categorie.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (produit.codeBarre && produit.codeBarre.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   if (loading) {
@@ -171,6 +207,9 @@ const InterfaceVente = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
+            <button className="btn-scanner" onClick={() => setShowScanner(true)} title="Scanner un code-barres">
+              📷 Scanner
+            </button>
           </div>
 
           <div className="produits-grid">
@@ -246,6 +285,14 @@ const InterfaceVente = () => {
           </div>
         </div>
       </div>
+
+      {/* Scanner code-barres */}
+      {showScanner && (
+        <BarcodeScanner
+          onDetect={handleScanDetect}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
 
       {/* Modal Facture */}
       {showFacture && derniereVente && (
