@@ -12,10 +12,17 @@ const DashboardVendeur = () => {
     totalCA: 0,
     caAujourdhui: 0,
     ventesAujourdhui: 0,
-    produitsPopulaires: []
+    produitsPopulaires: [],
+    // Nouvelles statistiques détaillées
+    moyenneParVente: 0,
+    meilleurJour: { jour: '-', montant: 0 },
+    meilleurProduit: { nom: '-', quantite: 0 },
+    paiementRepartition: {},
+    ventesParMois: []
   });
   const [ventesRecent, setVentesRecent] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     chargerDonnees();
@@ -42,7 +49,24 @@ const DashboardVendeur = () => {
       );
       const caAujourdhui = ventesAujourdhui.reduce((sum, v) => sum + v.totalVente, 0);
 
-      // Produits les plus vendus par ce vendeur
+      // --- STATISTIQUES DÉTAILLÉES ---
+
+      // Moyenne par vente
+      const moyenneParVente = totalVentes > 0 ? Math.round(totalCA / totalVentes) : 0;
+
+      // Meilleur jour de vente
+      const ventesParJour = {};
+      mesVentes.forEach(v => {
+        const jour = new Date(v.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        if (!ventesParJour[jour]) ventesParJour[jour] = 0;
+        ventesParJour[jour] += v.totalVente;
+      });
+      let meilleurJour = { jour: '-', montant: 0 };
+      Object.entries(ventesParJour).forEach(([jour, montant]) => {
+        if (montant > meilleurJour.montant) meilleurJour = { jour, montant };
+      });
+
+      // Meilleur produit
       const produitsVendus = {};
       mesVentes.forEach(vente => {
         vente.produitsVendus.forEach(item => {
@@ -70,6 +94,29 @@ const DashboardVendeur = () => {
             prixBoutique: produit?.prixBoutique || 0
           };
         });
+
+      const meilleurProduit = produitsPopulaires.length > 0 
+        ? { nom: produitsPopulaires[0].nomProduit, quantite: produitsPopulaires[0].quantite }
+        : { nom: '-', quantite: 0 };
+
+      // Répartition par mode de paiement
+      const paiementRepartition = {};
+      mesVentes.forEach(v => {
+        const type = v.typePaiement || 'espèces';
+        if (!paiementRepartition[type]) paiementRepartition[type] = { nombre: 0, montant: 0 };
+        paiementRepartition[type].nombre += 1;
+        paiementRepartition[type].montant += v.totalVente;
+      });
+
+      // Ventes par mois (pour graphique)
+      const ventesParMois = {};
+      mesVentes.forEach(v => {
+        const mois = new Date(v.date).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+        if (!ventesParMois[mois]) ventesParMois[mois] = { mois, nombre: 0, montant: 0 };
+        ventesParMois[mois].nombre += 1;
+        ventesParMois[mois].montant += v.totalVente;
+      });
+      const ventesParMoisArray = Object.values(ventesParMois).slice(-6);
 
       // Ventes récentes
       const recentes = mesVentes
@@ -99,7 +146,12 @@ const DashboardVendeur = () => {
         totalCA,
         caAujourdhui,
         ventesAujourdhui: ventesAujourdhui.length,
-        produitsPopulaires
+        produitsPopulaires,
+        moyenneParVente,
+        meilleurJour,
+        meilleurProduit,
+        paiementRepartition,
+        ventesParMois: ventesParMoisArray
       });
       setVentesRecent(recentes);
       setLoading(false);
@@ -125,21 +177,31 @@ const DashboardVendeur = () => {
       {/* En-tête */}
       <div className="dashboard-header">
         <div className="header-content">
-          <h1>👋 Bonjour, {user?.nomComplet || 'Vendeur'} !</h1>
-          <p className="header-subtitle">
-            {new Date().toLocaleDateString('fr-FR', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric'
-            })}
-          </p>
+          <div className="header-profil-row">
+            <div className="header-avatar">
+              {(user?.prenom?.charAt(0) || user?.nomComplet?.charAt(0) || 'V').toUpperCase()}
+            </div>
+            <div>
+              <h1>👋 Bonjour, {user?.prenom || user?.nomComplet || 'Vendeur'} !</h1>
+              <p className="header-subtitle">
+                {new Date().toLocaleDateString('fr-FR', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </p>
+            </div>
+          </div>
           <div className="header-badges">
             <span className="badge badge-success">
               ✅ Compte actif
             </span>
-            <span className="badge badge-info">
+            <span className="badge badge-info" onClick={() => setShowProfile(!showProfile)} style={{cursor: 'pointer'}}>
               📍 {user?.localisation || 'Cameroun'}
+            </span>
+            <span className="badge badge-info" onClick={() => setShowProfile(!showProfile)} style={{cursor: 'pointer'}}>
+              👤 Mon profil
             </span>
           </div>
         </div>
@@ -149,6 +211,56 @@ const DashboardVendeur = () => {
           </Link>
         </div>
       </div>
+
+      {/* Carte Profil détaillé */}
+      {showProfile && (
+        <div className="profil-card">
+          <div className="profil-card-header">
+            <h2>👤 Mon profil</h2>
+            <button className="profil-close" onClick={() => setShowProfile(false)}>✕</button>
+          </div>
+          <div className="profil-card-body">
+            <div className="profil-avatar-large">
+              {(user?.prenom?.charAt(0) || user?.nomComplet?.charAt(0) || 'V').toUpperCase()}
+              {(user?.nom?.charAt(0) || '').toUpperCase()}
+            </div>
+            <div className="profil-details">
+              <div className="profil-row">
+                <span className="profil-label">Nom complet</span>
+                <span className="profil-value">{user?.nomComplet || '-'}</span>
+              </div>
+              <div className="profil-row">
+                <span className="profil-label">Prénom</span>
+                <span className="profil-value">{user?.prenom || '-'}</span>
+              </div>
+              <div className="profil-row">
+                <span className="profil-label">Nom</span>
+                <span className="profil-value">{user?.nom || '-'}</span>
+              </div>
+              <div className="profil-row">
+                <span className="profil-label">Identifiant</span>
+                <span className="profil-value">@{user?.username}</span>
+              </div>
+              <div className="profil-row">
+                <span className="profil-label">Rôle</span>
+                <span className="profil-value"><span className="role-badge vendeur">🛒 Vendeur</span></span>
+              </div>
+              <div className="profil-row">
+                <span className="profil-label">Email</span>
+                <span className="profil-value">{user?.email || 'Non renseigné'}</span>
+              </div>
+              <div className="profil-row">
+                <span className="profil-label">Localisation</span>
+                <span className="profil-value">📍 {user?.localisation || 'Non renseigné'}</span>
+              </div>
+              <div className="profil-row">
+                <span className="profil-label">Date création</span>
+                <span className="profil-value">{user?.dateCreation || '-'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Statistiques */}
       <div className="stats-grid">
@@ -188,6 +300,77 @@ const DashboardVendeur = () => {
           </div>
         </div>
       </div>
+
+      {/* Statistiques détaillées */}
+      <div className="detailed-stats-grid">
+        <div className="stat-card-detailed">
+          <div className="stat-icon-detailed">📊</div>
+          <div className="stat-detailed-content">
+            <span className="stat-detailed-label">Moyenne par vente</span>
+            <span className="stat-detailed-value">{formatCFA(stats.moyenneParVente)}</span>
+          </div>
+        </div>
+        <div className="stat-card-detailed">
+          <div className="stat-icon-detailed">🏆</div>
+          <div className="stat-detailed-content">
+            <span className="stat-detailed-label">Meilleur jour</span>
+            <span className="stat-detailed-value">{formatCFA(stats.meilleurJour.montant)}</span>
+            <span className="stat-detailed-sub">{stats.meilleurJour.jour}</span>
+          </div>
+        </div>
+        <div className="stat-card-detailed">
+          <div className="stat-icon-detailed">🥇</div>
+          <div className="stat-detailed-content">
+            <span className="stat-detailed-label">Meilleur produit</span>
+            <span className="stat-detailed-value">{stats.meilleurProduit.nom}</span>
+            <span className="stat-detailed-sub">{stats.meilleurProduit.quantite} vendus</span>
+          </div>
+        </div>
+        <div className="stat-card-detailed">
+          <div className="stat-icon-detailed">💳</div>
+          <div className="stat-detailed-content">
+            <span className="stat-detailed-label">Paiements</span>
+            <div className="paiement-repartition">
+              {Object.entries(stats.paiementRepartition).map(([type, data]) => (
+                <span key={type} className="paiement-chip">
+                  {type === 'espèces' ? '💵' : type === 'carte' ? '💳' : type === 'mobile money' ? '📱' : '📝'} 
+                  {data.nombre} ({formatCFA(data.montant)})
+                </span>
+              ))}
+              {Object.keys(stats.paiementRepartition).length === 0 && (
+                <span className="stat-detailed-sub">Aucune vente</span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Évolution mensuelle */}
+      {stats.ventesParMois.length > 0 && (
+        <div className="card">
+          <div className="card-header">
+            <h2>📈 Évolution mensuelle</h2>
+          </div>
+          <div className="mois-evolution">
+            {stats.ventesParMois.map((mois, i) => {
+              const maxMontant = Math.max(...stats.ventesParMois.map(m => m.montant), 1);
+              const hauteur = (mois.montant / maxMontant) * 100;
+              return (
+                <div key={i} className="mois-barre-container">
+                  <div className="mois-barre-label">{mois.montant.toLocaleString('fr-FR')}</div>
+                  <div className="mois-barre">
+                    <div 
+                      className="mois-barre-fill" 
+                      style={{ height: `${hauteur}%` }}
+                    ></div>
+                  </div>
+                  <div className="mois-barre-mois">{mois.mois}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Contenu principal */}
       <div className="dashboard-content">

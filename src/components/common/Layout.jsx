@@ -33,6 +33,7 @@ const Layout = ({ children }) => {
     { path: '/vendeur/depenses', label: 'Dépenses', icon: '💸' },
     { path: '/vendeur/reception', label: 'Réception', icon: '📥' },
     { path: '/vendeur/comptabilite', label: 'Comptabilité', icon: '📊' },
+    { path: '/vendeur/profil', label: 'Mon profil', icon: '👤' },
   ];
 
   const menuItems = user?.role === 'admin' ? adminMenu : vendeurMenu;
@@ -69,7 +70,7 @@ const Layout = ({ children }) => {
               {user?.nomComplet?.charAt(0) || 'U'}
             </div>
             <div className="user-details">
-              <div className="user-name">{user?.nomComplet || user?.username}</div>
+              <div className="user-name">{user?.prenom ? (user.prenom + ' ' + user.nom) : (user?.nomComplet || user?.username)}</div>
               <div className="user-email">
                 {user?.role === 'admin' ? 'Administrateur' : 'Vendeur'}
               </div>

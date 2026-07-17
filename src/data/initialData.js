@@ -1,8 +1,8 @@
 export const initialData = {
   utilisateurs: [
-    { idUser: 1, username: "admin", password: "admin123", role: "admin", nomComplet: "Administrateur Principal", email: "admin@kodomarket.com", dateCreation: "2024-01-01", actif: true },
-    { idUser: 2, username: "vendeur1", password: "vendeur123", role: "vendeur", nomComplet: "Jean Dupont", localisation: "Douala, Cameroun", dateCreation: "2024-01-02", actif: true },
-    { idUser: 3, username: "vendeur2", password: "vendeur123", role: "vendeur", nomComplet: "Marie Claude", localisation: "Yaoundé, Cameroun", dateCreation: "2024-01-03", actif: true }
+    { idUser: 1, username: "admin", password: "admin123", role: "admin", nomComplet: "Administrateur Principal", prenom: "Administrateur", nom: "Principal", email: "admin@kodomarket.com", dateCreation: "2024-01-01", actif: true },
+    { idUser: 2, username: "vendeur1", password: "vendeur123", role: "vendeur", nomComplet: "Jean Dupont", prenom: "Jean", nom: "Dupont", localisation: "Douala, Cameroun", dateCreation: "2024-01-02", actif: true },
+    { idUser: 3, username: "vendeur2", password: "vendeur123", role: "vendeur", nomComplet: "Marie Claude", prenom: "Marie", nom: "Claude", localisation: "Yaoundé, Cameroun", dateCreation: "2024-01-03", actif: true }
   ],
   
   produits: [

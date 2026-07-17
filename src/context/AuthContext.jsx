@@ -64,6 +64,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUser = async (updatedData) => {
+    // Mettre à jour l'utilisateur dans le state et localStorage
+    setUser(updatedData);
+    localStorage.setItem('kodomarket_user', JSON.stringify(updatedData));
+    return updatedData;
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('kodomarket_user');
@@ -73,6 +80,7 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider value={{ 
       user, 
       login, 
+      updateUser,
       logout, 
       loading,
       isAdmin: user?.role === 'admin',

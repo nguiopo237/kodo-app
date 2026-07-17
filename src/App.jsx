@@ -21,6 +21,7 @@ const MesVentes = React.lazy(() => import('./pages/vendeur/MesVentes'));
 const DeclarerDepenses = React.lazy(() => import('./pages/vendeur/DeclarerDepenses'));
 const ConfirmerReception = React.lazy(() => import('./pages/vendeur/ConfirmerReception'));
 const ComptabiliteVendeur = React.lazy(() => import('./pages/vendeur/ComptabiliteVendeur'));
+const ProfilVendeur = React.lazy(() => import('./pages/vendeur/ProfilVendeur'));
 
 const NotFound = React.lazy(() => import('./pages/NotFound'));
 
@@ -160,6 +161,12 @@ function App() {
         <Route path="/vendeur/comptabilite" element={
           <ProtectedRoute requiredRole="vendeur">
             <ComptabiliteVendeur />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/vendeur/profil" element={
+          <ProtectedRoute requiredRole="vendeur">
+            <ProfilVendeur />
           </ProtectedRoute>
         } />
 

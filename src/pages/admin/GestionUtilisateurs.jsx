@@ -19,7 +19,8 @@ const GestionUtilisateurs = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
-    nomComplet: '',
+    prenom: '',
+    nom: '',
     email: '',
     role: 'vendeur',
     localisation: '',
@@ -63,7 +64,7 @@ const GestionUtilisateurs = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.username || !formData.password || !formData.nomComplet) {
+    if (!formData.username || !formData.password || !formData.prenom || !formData.nom) {
       showError('❌ Veuillez remplir tous les champs obligatoires');
       return;
     }
@@ -84,7 +85,9 @@ const GestionUtilisateurs = () => {
         idUser: newId,
         username: formData.username,
         password: formData.password,
-        nomComplet: formData.nomComplet,
+        prenom: formData.prenom.trim(),
+        nom: formData.nom.trim(),
+        nomComplet: formData.prenom.trim() + ' ' + formData.nom.trim(),
         email: formData.email || '',
         role: formData.role,
         localisation: formData.localisation || '',
@@ -107,10 +110,13 @@ const GestionUtilisateurs = () => {
   // Modifier un utilisateur
   const handleEdit = (user) => {
     setSelectedUser(user);
+    // Extraire prenom et nom depuis nomComplet si les champs séparés n'existent pas
+    const parts = (user.nomComplet || '').split(' ');
     setFormData({
       username: user.username,
       password: '',
-      nomComplet: user.nomComplet,
+      prenom: user.prenom || parts[0] || '',
+      nom: user.nom || parts.slice(1).join(' ') || '',
       email: user.email || '',
       role: user.role,
       localisation: user.localisation || '',
@@ -122,8 +128,8 @@ const GestionUtilisateurs = () => {
   const handleUpdate = (e) => {
     e.preventDefault();
     
-    if (!formData.nomComplet) {
-      showError('❌ Veuillez remplir le nom complet');
+    if (!formData.prenom || !formData.nom) {
+      showError('❌ Veuillez remplir le prénom et le nom');
       return;
     }
 
@@ -135,7 +141,9 @@ const GestionUtilisateurs = () => {
       if (index !== -1) {
         const updatedUser = {
           ...users[index],
-          nomComplet: formData.nomComplet,
+          prenom: formData.prenom.trim(),
+          nom: formData.nom.trim(),
+          nomComplet: formData.prenom.trim() + ' ' + formData.nom.trim(),
           email: formData.email || '',
           role: formData.role,
           localisation: formData.localisation || '',
@@ -202,7 +210,8 @@ const GestionUtilisateurs = () => {
     setFormData({
       username: '',
       password: '',
-      nomComplet: '',
+      prenom: '',
+      nom: '',
       email: '',
       role: 'vendeur',
       localisation: '',
@@ -420,13 +429,24 @@ const GestionUtilisateurs = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Nom complet *</label>
+                    <label>Prénom *</label>
                     <input
                       type="text"
-                      name="nomComplet"
-                      value={formData.nomComplet}
+                      name="prenom"
+                      value={formData.prenom}
                       onChange={handleInputChange}
-                      placeholder="Jean Dupont"
+                      placeholder="Jean"
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Nom *</label>
+                    <input
+                      type="text"
+                      name="nom"
+                      value={formData.nom}
+                      onChange={handleInputChange}
+                      placeholder="Dupont"
                       required
                     />
                   </div>
@@ -521,11 +541,21 @@ const GestionUtilisateurs = () => {
                     />
                   </div>
                   <div className="form-group">
-                    <label>Nom complet *</label>
+                    <label>Prénom *</label>
                     <input
                       type="text"
-                      name="nomComplet"
-                      value={formData.nomComplet}
+                      name="prenom"
+                      value={formData.prenom}
+                      onChange={handleInputChange}
+                      required
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Nom *</label>
+                    <input
+                      type="text"
+                      name="nom"
+                      value={formData.nom}
                       onChange={handleInputChange}
                       required
                     />
