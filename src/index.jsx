@@ -3,9 +3,12 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import { AuthProvider } from './context/AuthContext';
+import { RoleProvider } from './context/RoleContext';
+import { TypographyProvider } from './services/typographyService';
+import { ThemeProvider } from './context/ThemeContext';
 import { NotificationProvider } from './context/NotificationContext';
 import { HashRouter } from 'react-router-dom';
-import { initFromFirestore } from './services/dashboardService'; // Changement ici
+import { initFromFirestore } from './services/dashboardService';
 
 const FirebaseLoader = ({ children }) => {
   const [ready, setReady] = useState(false);
@@ -18,26 +21,9 @@ const FirebaseLoader = ({ children }) => {
 
   if (!ready) {
     return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        flexDirection: 'column',
-        gap: '20px',
-        background: '#f5f7fa'
-      }}>
-        <div style={{
-          width: '50px',
-          height: '50px',
-          border: '5px solid #e5e7eb',
-          borderTop: '5px solid #667eea',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }}></div>
-        <p style={{ color: '#6b7280', fontFamily: 'Arial, sans-serif' }}>
-          Connexion à Firebase...
-        </p>
+      <div className="loading-screen">
+        <div className="loading-screen-spinner"></div>
+        <p className="loading-screen-text">Connexion à Firebase...</p>
       </div>
     );
   }
@@ -50,11 +36,17 @@ root.render(
   <React.StrictMode>
     <HashRouter>
       <AuthProvider>
-        <NotificationProvider>
-          <FirebaseLoader>
-            <App />
-          </FirebaseLoader>
-        </NotificationProvider>
+        <ThemeProvider>
+          <RoleProvider>
+            <TypographyProvider>
+              <NotificationProvider>
+                <FirebaseLoader>
+                  <App />
+                </FirebaseLoader>
+              </NotificationProvider>
+            </TypographyProvider>
+          </RoleProvider>
+        </ThemeProvider>
       </AuthProvider>
     </HashRouter>
   </React.StrictMode>

@@ -5,7 +5,29 @@ import { formatCFA } from '../../utils/formatters';
 import './ComptabiliteVendeur.css';
 
 const ComptabiliteVendeur = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
+
+  const peutVoirCompta = hasPermission('comptabilite:lire');
+  if (!peutVoirCompta) {
+    return (
+      <div className="compta-vendeur">
+        <div className="page-header compta-header">
+          <div className="header-title">
+            <h1>📊 Comptabilite</h1>
+            <p>Analysez vos performances financieres</p>
+          </div>
+        </div>
+        <div className="empty-state" style={{ marginTop: 40 }}>
+          <div className="empty-icon" style={{ fontSize: '4rem' }}>🚫</div>
+          <h3>Permission refusee</h3>
+          <p style={{ color: '#6b7280', maxWidth: 400, margin: '0 auto' }}>
+            Vous n&rsquo;avez pas la permission de consulter la comptabilite.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acces necessaire.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const [data, setData] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('apercu');

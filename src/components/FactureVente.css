@@ -484,7 +484,66 @@
     padding: 24px 20px;
   }
 
-  .facture-hea
+  .facture-header {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .facture-logo-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .facture-titre-section {
+    text-align: left;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .facture-titre-section h2 {
+    font-size: 1.6rem;
+  }
+
+  .facture-info {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .facture-info-vente {
+    min-width: unset;
+  }
+
+  .facture-resume {
+    width: 100%;
+  }
+
+  .facture-footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .facture-table thead th {
+    font-size: 0.75rem;
+    padding: 8px 6px;
+  }
+
+  .facture-table tbody td {
+    padding: 6px;
+    font-size: 0.82rem;
+  }
+
+  .facture-logo {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+  }
+
+  .facture-brand h1 {
+    font-size: 1.3rem;
+  }
+}
 
 /* ============================================
    STYLES D'IMPRESSION

@@ -9,7 +9,7 @@
    ============================================ */
 .sidebar {
   width: 260px;
-  background: rgba(255,255,255,0.9);
+  background: rgba(255,255,255,0.92);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid rgba(255,255,255,0.3);
@@ -103,7 +103,7 @@
 }
 
 /* ============================================
-   SIDEBAR FOOTER
+   SIDEBAR FOOTER PREMIUM
    ============================================ */
 .sidebar-footer {
   padding: 16px 20px;
@@ -194,7 +194,7 @@
 }
 
 .main-header {
-  background: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   padding: 20px 30px;
@@ -204,7 +204,7 @@
   z-index: 50;
 }
 
-.main-header h1 {
+.main-header-content h1 {
   font-size: 1.6rem;
   color: var(--neutral-900);
   margin-bottom: 4px;
@@ -216,11 +216,46 @@
   font-size: 0.9rem;
 }
 
+.main-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .content-wrapper {
   flex: 1;
   padding: 30px;
   overflow-y: auto;
   animation: fadeIn 0.5s ease-out;
+}
+
+/* ============================================
+   LOADING SCREEN
+   ============================================ */
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 20px;
+  background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%);
+}
+
+.loading-screen-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid var(--neutral-200);
+  border-top: 5px solid var(--primary-500);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.loading-screen-text {
+  color: var(--neutral-500);
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
 }
 
 /* ============================================
@@ -274,6 +309,11 @@
     padding: 3px 10px;
   }
 
+  .sidebar-role-badge {
+    font-size: 0.6rem;
+    padding: 3px 8px;
+  }
+
   .logout-btn {
     justify-content: center;
     padding: 10px;
@@ -293,5 +333,98 @@
 
   .content-wrapper {
     padding: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .main-content {
+    margin-left: 60px;
+  }
+
+  .content-wrapper {
+    padding: 14px;
+  }
+
+  .main-header {
+    padding: 12px 14px;
+  }
+
+  .sidebar-header h2 {
+    font-size: 0.7rem;
+  }
+
+  .sidebar-nav {
+    padding: 8px 4px;
+  }
+
+  .nav-link {
+    padding: 10px 6px;
+  }
+
+  .nav-icon {
+    font-size: 1.1rem;
+  }
+}
+
+/* ============================================
+   THEME TOGGLE DANS LE SIDEBAR
+   ============================================ */
+.theme-toggle-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: var(--bg-hover);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-fast);
+}
+
+.theme-toggle-container:hover {
+  border-color: var(--border-primary);
+}
+
+.theme-toggle-label {
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-family: var(--typo-body);
+}
+
+/* ============================================
+   RESPONSIVE - TOGGLE
+   ============================================ */
+@media (max-width: 768px) {
+  .sidebar-footer .theme-toggle-container {
+    padding: 8px 4px;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+    border-radius: 0;
+    margin: 6px 0;
+    position: relative;
+  }
+
+  .sidebar-footer .theme-toggle-container:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-primary);
+  }
+
+  .theme-toggle-label {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .sidebar-footer .theme-toggle-container {
+    padding: 6px 2px;
+    margin: 4px 0;
   }
 }

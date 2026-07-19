@@ -8,8 +8,28 @@ import BarcodeScanner from '../../components/BarcodeScanner';
 import './InterfaceVente.css';
 
 const InterfaceVente = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { success, error: showError } = useNotification();
+
+  const peutVendre = hasPermission('ventes:creer');
+
+  if (!peutVendre) {
+    return (
+      <div className="interface-vente">
+        <div className="page-header">
+          <h1>🛒 Nouvelle vente</h1>
+          <p>Vendeur : {user?.nomComplet}</p>
+        </div>
+        <div className="empty-state" style={{ marginTop: 40 }}>
+          <div className="empty-icon" style={{ fontSize: '4rem' }}>🚫</div>
+          <h3>Permission refusee</h3>
+          <p style={{ color: '#6b7280', maxWidth: 400, margin: '0 auto' }}>
+            Vous n&rsquo;avez pas la permission de creer des ventes.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acces necessaire.
+          </p>
+        </div>
+      </div>
+    );
+  }
   const [produits, setProduits] = useState([]);
   const [panier, setPanier] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');

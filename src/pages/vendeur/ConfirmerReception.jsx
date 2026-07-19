@@ -7,8 +7,30 @@ import { formatCFA } from '../../utils/formatters';
 import './ConfirmerReception.css';
 
 const ConfirmerReception = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { success, error: showError } = useNotification();
+
+  const peutConfirmer = hasPermission('transport:confirmer');
+
+  if (!peutConfirmer) {
+    return (
+      <div className="confirmer-reception">
+        <div className="page-header reception-header">
+          <div className="header-title">
+            <h1>📥 Confirmer la reception</h1>
+            <p>Geerez la reception de vos envois et la mise a jour du stock</p>
+          </div>
+        </div>
+        <div className="empty-state" style={{ marginTop: 40 }}>
+          <div className="empty-icon" style={{ fontSize: '4rem' }}>🚫</div>
+          <h3>Permission refusee</h3>
+          <p style={{ color: '#6b7280', maxWidth: 400, margin: '0 auto' }}>
+            Vous n&rsquo;avez pas la permission de confirmer les receptions.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acces necessaire.
+          </p>
+        </div>
+      </div>
+    );
+  }
   const [envois, setEnvois] = useState([]);
   const [produits, setProduits] = useState([]);
   const [loading, setLoading] = useState(true);

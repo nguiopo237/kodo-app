@@ -22,7 +22,6 @@
   line-height: 1.6;
 }
 
-/* Style pour page-container */
 .page-container {
   background: white;
   padding: 30px;
@@ -42,13 +41,11 @@
   line-height: 1.6;
 }
 
-/* Animation pour le spinner */
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
 
-/* Boutons génériques */
 .btn {
   padding: 12px 24px;
   border-radius: 10px;

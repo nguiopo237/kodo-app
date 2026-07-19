@@ -1,0 +1,236 @@
+/* ============================================
+   RÔLES & PERMISSIONS — KodoMarket Premium
+   ============================================ */
+
+/* ============================================
+   BADGES DE RÔLE PREMIUM
+   ============================================ */
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
+  border: 1px solid transparent;
+  cursor: default;
+}
+
+.role-badge:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.role-badge--super_admin {
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe) !important;
+  color: #5b21b6 !important;
+  border-color: #c4b5fd !important;
+  box-shadow: 0 2px 8px rgba(124, 58, 237, 0.2);
+}
+
+.role-badge--admin {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe) !important;
+  color: #1d4ed8 !important;
+  border-color: #93c5fd !important;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.role-badge--vendeur {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0) !important;
+  color: #065f46 !important;
+  border-color: #6ee7b7 !important;
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.2);
+}
+
+.role-badge--livreur {
+  background: linear-gradient(135deg, #fef3c7, #fde68a) !important;
+  color: #92400e !important;
+  border-color: #fcd34d !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.2);
+}
+
+.role-badge--comptable {
+  background: linear-gradient(135deg, #ede9fe, #ddd6fe) !important;
+  color: #6d28d9 !important;
+  border-color: #c4b5fd !important;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+}
+
+/* ============================================
+   BADGE DE RÔLE DANS LE SIDEBAR
+   ============================================ */
+.sidebar-role-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: rgba(255,255,255,0.15);
+  color: white;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  cursor: default;
+  transition: all 0.3s ease;
+}
+
+.sidebar-role-badge:hover {
+  background: rgba(255,255,255,0.25);
+  transform: translateY(-1px);
+}
+
+/* ============================================
+   SÉLECTEUR DE RÔLE DANS LES FORMULAIRES
+   ============================================ */
+.role-select-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.role-select-option:hover {
+  background: var(--neutral-50);
+}
+
+.role-select-option.selected {
+  background: var(--primary-50);
+  border: 1px solid var(--primary-200);
+}
+
+/* ============================================
+   PERMISSION BADGES
+   ============================================ */
+.permission-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: var(--neutral-100);
+  color: var(--neutral-600);
+  border: 1px solid var(--neutral-200);
+  transition: all 0.2s ease;
+}
+
+.permission-chip:hover {
+  background: var(--primary-50);
+  border-color: var(--primary-200);
+  color: var(--primary-700);
+}
+
+.permission-chip.granted {
+  background: #d1fae5;
+  color: #065f46;
+  border-color: #6ee7b7;
+}
+
+.permission-chip.denied {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
+/* ============================================
+   CARTE DE PERMISSIONS
+   ============================================ */
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.permissions-group {
+  background: var(--neutral-50);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--neutral-200);
+}
+
+.permissions-group h4 {
+  font-size: 0.85rem;
+  color: var(--neutral-700);
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+/* ============================================
+   MODAL DE CHANGEMENT DE RÔLE
+   ============================================ */
+.role-change-modal .role-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border: 2px solid var(--neutral-200);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.role-change-modal .role-card:hover {
+  border-color: var(--primary-300);
+  background: var(--primary-50);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.role-change-modal .role-card.active {
+  border-color: var(--primary-500);
+  background: var(--primary-50);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+}
+
+.role-card-icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.role-card-info h4 {
+  font-size: 1rem;
+  margin: 0 0 2px 0;
+  color: var(--neutral-900);
+}
+
+.role-card-info p {
+  font-size: 0.82rem;
+  color: var(--neutral-500);
+  margin: 0;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .permissions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .role-change-modal .role-card {
+    padding: 12px 16px;
+  }
+
+  .role-card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+}

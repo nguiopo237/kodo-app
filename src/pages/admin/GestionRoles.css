@@ -1,0 +1,700 @@
+/* ============================================
+   GESTION DES ROLES & PERMISSIONS
+   ============================================ */
+
+.gestion-roles {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.gestion-roles .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px;
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  border-radius: 16px;
+  color: white;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.3);
+}
+
+.gestion-roles .header-title h1 {
+  font-size: 2rem;
+  margin-bottom: 8px;
+  color: white;
+  font-weight: 700;
+}
+
+.gestion-roles .header-title p {
+  opacity: 0.9;
+  margin: 0;
+  font-size: 1rem;
+}
+
+.gestion-roles .stats-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 25px;
+}
+
+.gestion-roles .stat-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 20px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  border-left: 5px solid #8b5cf6;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.gestion-roles .stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.gestion-roles .stat-card.builtin { border-left-color: #7c3aed; }
+.gestion-roles .stat-card.custom { border-left-color: #3b82f6; }
+.gestion-roles .stat-card.perms { border-left-color: #10b981; }
+
+.gestion-roles .stat-icon {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(139, 92, 246, 0.1);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.gestion-roles .stat-card.builtin .stat-icon { background: rgba(124, 58, 237, 0.1); }
+.gestion-roles .stat-card.custom .stat-icon { background: rgba(59, 130, 246, 0.1); }
+.gestion-roles .stat-card.perms .stat-icon { background: rgba(16, 185, 129, 0.1); }
+
+.gestion-roles .stat-content h3 {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 4px 0;
+  font-weight: 600;
+}
+
+.gestion-roles .stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* ============================================
+   GRILLE DES ROLES
+   ============================================ */
+
+.gestion-roles .roles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.gestion-roles .role-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+
+.gestion-roles .role-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1);
+  border-color: #8b5cf6;
+}
+
+.gestion-roles .role-card.builtin {
+  border-left: 4px solid #7c3aed;
+}
+
+.gestion-roles .role-card.custom {
+  border-left: 4px solid #3b82f6;
+}
+
+.gestion-roles .role-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 20px 12px;
+}
+
+.gestion-roles .role-card-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  flex-shrink: 0;
+}
+
+.gestion-roles .role-card-title {
+  flex: 1;
+}
+
+.gestion-roles .role-card-title h3 {
+  margin: 0 0 4px 0;
+  font-size: 1.1rem;
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.gestion-roles .role-card-title .role-badge-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 100px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.gestion-roles .role-card-meta {
+  padding: 0 20px 16px;
+}
+
+.gestion-roles .role-description {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0 0 10px 0;
+  line-height: 1.4;
+}
+
+.gestion-roles .role-id-badge code {
+  font-size: 0.75rem;
+  background: #f3f4f6;
+  padding: 3px 10px;
+  border-radius: 6px;
+  color: #6b7280;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.gestion-roles .role-perm-bar {
+  padding: 0 20px 6px;
+}
+
+.gestion-roles .perm-bar-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.gestion-roles .perm-count {
+  font-weight: 600;
+  color: #374151;
+}
+
+.gestion-roles .perm-bar-track {
+  width: 100%;
+  height: 8px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.gestion-roles .perm-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.5s ease;
+}
+
+.gestion-roles .role-card-actions {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid #f3f4f6;
+  align-items: center;
+}
+
+.gestion-roles .btn-action.config {
+  flex: 1;
+  padding: 8px 14px;
+  background: #eff6ff;
+  color: #2563eb;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.82rem;
+  transition: all 0.2s ease;
+}
+
+.gestion-roles .btn-action.config:hover {
+  background: #dbeafe;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.gestion-roles .btn-action.edit {
+  width: 38px;
+  height: 38px;
+  background: #f0fdf4;
+  color: #16a34a;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.gestion-roles .btn-action.edit:hover {
+  background: #dcfce7;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.2);
+}
+
+.gestion-roles .btn-action.delete {
+  width: 38px;
+  height: 38px;
+  background: #fef2f2;
+  color: #dc2626;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.gestion-roles .btn-action.delete:hover {
+  background: #fecaca;
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.gestion-roles .builtin-note {
+  font-size: 0.75rem;
+  color: #94a3b8;
+  padding: 8px 0;
+}
+
+/* ============================================
+   SÉLECTEURS DE COULEURS/ICÔNES
+   ============================================ */
+
+.gestion-roles .icon-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.gestion-roles .icon-option {
+  width: 40px;
+  height: 40px;
+  font-size: 1.3rem;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.gestion-roles .icon-option:hover {
+  border-color: #8b5cf6;
+  transform: scale(1.1);
+}
+
+.gestion-roles .icon-option.selected {
+  border-color: #8b5cf6;
+  background: #ede9fe;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.gestion-roles .color-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.gestion-roles .color-option {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+.gestion-roles .color-option:hover {
+  transform: scale(1.15);
+}
+
+.gestion-roles .color-option.selected {
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+}
+
+.gestion-roles .level-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.gestion-roles .level-option {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 2px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.gestion-roles .level-option:hover {
+  border-color: #8b5cf6;
+  background: #ede9fe;
+}
+
+.gestion-roles .level-option.selected {
+  border-color: #8b5cf6;
+  background: #ede9fe;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+}
+
+.gestion-roles .role-preview {
+  margin-top: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px dashed #e2e8f0;
+}
+
+.gestion-roles .role-preview label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.gestion-roles .preview-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+/* ============================================
+   MODAL PERMISSIONS
+   ============================================ */
+
+.gestion-roles .modal-perms {
+  max-width: 720px;
+}
+
+.gestion-roles .perms-intro {
+  margin-bottom: 20px;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.gestion-roles .perms-intro strong {
+  color: #1f2937;
+  font-weight: 700;
+}
+
+.gestion-roles .permissions-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gestion-roles .perm-group {
+  background: #f8fafc;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  overflow: hidden;
+}
+
+.gestion-roles .perm-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.gestion-roles .perm-group-header h4 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #374151;
+  font-weight: 700;
+}
+
+.gestion-roles .btn-toggle-group {
+  padding: 4px 12px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.gestion-roles .btn-toggle-group.all {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.gestion-roles .btn-toggle-group.some {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.gestion-roles .btn-toggle-group.none {
+  background: #f1f5f9;
+  color: #6b7280;
+}
+
+.gestion-roles .btn-toggle-group:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.gestion-roles .perm-group-items {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 8px;
+}
+
+.gestion-roles .perm-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.gestion-roles .perm-item:hover {
+  background: #ede9fe;
+}
+
+.gestion-roles .perm-item.granted {
+  background: #ede9fe;
+}
+
+.gestion-roles .perm-item input[type="checkbox"] {
+  accent-color: #8b5cf6;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.gestion-roles .perm-label {
+  font-size: 0.82rem;
+  color: #374151;
+  flex: 1;
+}
+
+.gestion-roles .perm-item.granted .perm-label {
+  font-weight: 600;
+  color: #5b21b6;
+}
+
+.gestion-roles .perm-key {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  background: #f1f5f9;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'JetBrains Mono', monospace;
+  display: none;
+}
+
+.gestion-roles .perm-item:hover .perm-key {
+  display: inline;
+}
+
+/* ============================================
+   MODAL DE SUPPRESSION
+   ============================================ */
+
+.gestion-roles .modal-sm {
+  max-width: 450px;
+}
+
+.gestion-roles .delete-confirmation {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+
+.gestion-roles .warning-icon {
+  font-size: 3.5rem;
+  color: #f59e0b;
+  flex-shrink: 0;
+}
+
+.gestion-roles .warning-content h3 {
+  color: #1f2937;
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+}
+
+.gestion-roles .warning-content p {
+  color: #6b7280;
+  margin: 0 0 15px 0;
+  font-size: 0.9rem;
+}
+
+.gestion-roles .warning-message {
+  background: #fef3c7;
+  border-left: 4px solid #f59e0b;
+  padding: 12px 16px;
+  border-radius: 8px;
+  color: #92400e;
+  font-size: 0.85rem;
+}
+
+/* ============================================
+   LOADING
+   ============================================ */
+
+.gestion-roles .loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 20px;
+}
+
+.gestion-roles .loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #8b5cf6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.gestion-roles .loading-container p {
+  color: #6b7280;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 1024px) {
+  .gestion-roles .roles-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .gestion-roles .page-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .gestion-roles .header-title h1 {
+    font-size: 1.6rem;
+  }
+
+  .gestion-roles .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .gestion-roles .stat-card {
+    padding: 16px 18px;
+  }
+
+  .gestion-roles .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .gestion-roles .roles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gestion-roles .perm-group-items {
+    grid-template-columns: 1fr;
+  }
+
+  .gestion-roles .modal-perms {
+    max-width: 100%;
+    margin: 10px;
+  }
+
+  .gestion-roles .delete-confirmation {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .gestion-roles .stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .gestion-roles .stat-card {
+    padding: 14px 16px;
+  }
+
+  .gestion-roles .role-card-header {
+    padding: 16px 16px 10px;
+  }
+
+  .gestion-roles .role-card-meta,
+  .gestion-roles .role-perm-bar,
+  .gestion-roles .role-card-actions {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .gestion-roles .role-card-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 1.5rem;
+  }
+
+  .gestion-roles .role-card-title h3 {
+    font-size: 1rem;
+  }
+}

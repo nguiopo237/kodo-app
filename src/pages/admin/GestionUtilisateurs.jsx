@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardService } from '../../services/dashboardService';
 import { useNotification } from '../../context/NotificationContext';
+import * as roleService from '../../services/roleService';
 import './GestionUtilisateurs.css';
 
 const GestionUtilisateurs = () => {
@@ -12,76 +13,51 @@ const GestionUtilisateurs = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('tous');
-
-  // Formulaire d'ajout/modification
   const { success, error: showError } = useNotification();
 
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
-    prenom: '',
-    nom: '',
-    email: '',
-    role: 'vendeur',
-    localisation: '',
-    actif: true
+    username: '', password: '', prenom: '', nom: '',
+    email: '', role: 'vendeur', localisation: '', actif: true
   });
 
-  // Charger les utilisateurs
   const chargerUtilisateurs = () => {
     setLoading(true);
     setTimeout(() => {
       const data = dashboardService.loadData();
-      const users = data.utilisateurs || [];
-      setUtilisateurs(users);
+      setUtilisateurs(data.utilisateurs || []);
       setLoading(false);
     }, 500);
   };
 
-  useEffect(() => {
-    chargerUtilisateurs();
-  }, []);
+  useEffect(() => { chargerUtilisateurs(); }, []);
 
-  // Filtrer les utilisateurs
   const utilisateursFiltres = utilisateurs.filter(user => {
-    const matchSearch = user.nomComplet.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        user.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const s = searchTerm.toLowerCase();
+    const matchSearch = user.nomComplet.toLowerCase().includes(s) ||
+      user.username.toLowerCase().includes(s) ||
+      (user.email || '').toLowerCase().includes(s);
     const matchRole = filterRole === 'tous' || user.role === filterRole;
     return matchSearch && matchRole;
   });
 
-  // Gestion du formulaire
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  // Ajouter un utilisateur
   const handleSubmit = (e) => {
     e.preventDefault();
-    
     if (!formData.username || !formData.password || !formData.prenom || !formData.nom) {
-      showError('❌ Veuillez remplir tous les champs obligatoires');
-      return;
+      showError('Veuillez remplir tous les champs obligatoires'); return;
     }
-
     try {
       const data = dashboardService.loadData();
       const users = data.utilisateurs || [];
-      
-      // Vérifier si l'utilisateur existe déjà
       if (users.find(u => u.username === formData.username)) {
-        showError('❌ Ce nom d\'utilisateur existe déjà');
-        return;
+        showError('Ce nom d\'utilisateur existe deja'); return;
       }
-
       const newId = Math.max(...users.map(u => u.idUser), 0) + 1;
-      
-      const newUser = {
+      users.push({
         idUser: newId,
         username: formData.username,
         password: formData.password,
@@ -93,32 +69,23 @@ const GestionUtilisateurs = () => {
         localisation: formData.localisation || '',
         actif: formData.actif,
         dateCreation: new Date().toISOString().split('T')[0]
-      };
-
-      users.push(newUser);
+      });
       dashboardService.saveData('utilisateurs', users);
-      
       setShowModal(false);
       resetForm();
       chargerUtilisateurs();
-      success('✅ Utilisateur ajouté avec succès !');
-    } catch (error) {
-      showError('❌ ' + error.message);
-    }
+      success('Utilisateur ajoute avec succes !');
+    } catch (error) { showError(error.message); }
   };
 
-  // Modifier un utilisateur
   const handleEdit = (user) => {
     setSelectedUser(user);
-    // Extraire prenom et nom depuis nomComplet si les champs séparés n'existent pas
     const parts = (user.nomComplet || '').split(' ');
     setFormData({
-      username: user.username,
-      password: '',
+      username: user.username, password: '',
       prenom: user.prenom || parts[0] || '',
       nom: user.nom || parts.slice(1).join(' ') || '',
-      email: user.email || '',
-      role: user.role,
+      email: user.email || '', role: user.role,
       localisation: user.localisation || '',
       actif: user.actif !== undefined ? user.actif : true
     });
@@ -127,52 +94,36 @@ const GestionUtilisateurs = () => {
 
   const handleUpdate = (e) => {
     e.preventDefault();
-    
     if (!formData.prenom || !formData.nom) {
-      showError('❌ Veuillez remplir le prénom et le nom');
-      return;
+      showError('Veuillez remplir le prenom et le nom'); return;
     }
-
     try {
       const data = dashboardService.loadData();
       const users = data.utilisateurs || [];
       const index = users.findIndex(u => u.idUser === selectedUser.idUser);
-      
       if (index !== -1) {
-        const updatedUser = {
+        users[index] = {
           ...users[index],
           prenom: formData.prenom.trim(),
           nom: formData.nom.trim(),
           nomComplet: formData.prenom.trim() + ' ' + formData.nom.trim(),
-          email: formData.email || '',
-          role: formData.role,
+          email: formData.email || '', role: formData.role,
           localisation: formData.localisation || '',
-          actif: formData.actif
+          actif: formData.actif,
+          ...(formData.password ? { password: formData.password } : {})
         };
-        
-        // Mettre à jour le mot de passe si fourni
-        if (formData.password) {
-          updatedUser.password = formData.password;
-        }
-        
-        users[index] = updatedUser;
         dashboardService.saveData('utilisateurs', users);
-        
         setShowEditModal(false);
         resetForm();
         chargerUtilisateurs();
-        success('✅ Utilisateur modifié avec succès !');
+        success('Utilisateur modifie avec succes !');
       }
-    } catch (error) {
-      showError('❌ ' + error.message);
-    }
+    } catch (error) { showError(error.message); }
   };
 
-  // Supprimer un utilisateur
   const handleDelete = (user) => {
     if (user.role === 'admin') {
-      showError('❌ Impossible de supprimer l\'administrateur principal');
-      return;
+      showError('Impossible de supprimer l\'administrateur principal'); return;
     }
     setSelectedUser(user);
     setShowDeleteModal(true);
@@ -182,51 +133,29 @@ const GestionUtilisateurs = () => {
     try {
       const data = dashboardService.loadData();
       const users = data.utilisateurs || [];
-      
-      // Vérifier si l'utilisateur a des ventes
-      const ventes = data.ventes || [];
-      const hasVentes = ventes.some(v => v.idVendeur === selectedUser.idUser);
-      
-      if (hasVentes) {
-        if (!window.confirm(`Cet utilisateur a ${ventes.filter(v => v.idVendeur === selectedUser.idUser).length} vente(s). Voulez-vous vraiment le supprimer ?`)) {
-          return;
-        }
-      }
-      
-      const filteredUsers = users.filter(u => u.idUser !== selectedUser.idUser);
-      dashboardService.saveData('utilisateurs', filteredUsers);
-      
+      const filtered = users.filter(u => u.idUser !== selectedUser.idUser);
+      dashboardService.saveData('utilisateurs', filtered);
       setShowDeleteModal(false);
       setSelectedUser(null);
       chargerUtilisateurs();
-      success('✅ Utilisateur supprimé avec succès !');
-    } catch (error) {
-      showError('❌ ' + error.message);
-    }
+      success('Utilisateur supprime avec succes !');
+    } catch (error) { showError(error.message); }
   };
 
-  // Réinitialiser le formulaire
   const resetForm = () => {
-    setFormData({
-      username: '',
-      password: '',
-      prenom: '',
-      nom: '',
-      email: '',
-      role: 'vendeur',
-      localisation: '',
-      actif: true
-    });
+    setFormData({ username: '', password: '', prenom: '', nom: '',
+      email: '', role: 'vendeur', localisation: '', actif: true });
     setSelectedUser(null);
   };
 
-  // Statistiques
   const stats = {
     total: utilisateurs.length,
-    admins: utilisateurs.filter(u => u.role === 'admin').length,
+    admins: utilisateurs.filter(u => u.role === 'admin' || u.role === 'super_admin').length,
     vendeurs: utilisateurs.filter(u => u.role === 'vendeur').length,
     actifs: utilisateurs.filter(u => u.actif !== false).length
   };
+
+  const allRoles = roleService.getAllRoles();
 
   if (loading) {
     return (
@@ -239,42 +168,40 @@ const GestionUtilisateurs = () => {
 
   return (
     <div className="gestion-utilisateurs">
-      {/* En-tête */}
       <div className="page-header">
         <div className="header-title">
-          <h1>👥 Gestion des utilisateurs</h1>
-          <p>Gérez les comptes administrateurs et vendeurs</p>
+          <h1>Gestion des utilisateurs</h1>
+          <p>Gerez les comptes et les permissions de la plateforme</p>
         </div>
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
           + Nouvel utilisateur
         </button>
       </div>
 
-      {/* Statistiques */}
       <div className="stats-cards">
         <div className="stat-card">
-          <div className="stat-icon">👤</div>
+          <div className="stat-icon">Total</div>
           <div className="stat-content">
             <h3>Total utilisateurs</h3>
             <div className="stat-value">{stats.total}</div>
           </div>
         </div>
         <div className="stat-card admin">
-          <div className="stat-icon">🛡️</div>
+          <div className="stat-icon">Admin</div>
           <div className="stat-content">
             <h3>Administrateurs</h3>
             <div className="stat-value">{stats.admins}</div>
           </div>
         </div>
         <div className="stat-card vendeur">
-          <div className="stat-icon">🛒</div>
+          <div className="stat-icon">Vendeur</div>
           <div className="stat-content">
             <h3>Vendeurs</h3>
             <div className="stat-value">{stats.vendeurs}</div>
           </div>
         </div>
         <div className="stat-card actif">
-          <div className="stat-icon">✅</div>
+          <div className="stat-icon">Actif</div>
           <div className="stat-content">
             <h3>Comptes actifs</h3>
             <div className="stat-value">{stats.actifs}</div>
@@ -282,108 +209,116 @@ const GestionUtilisateurs = () => {
         </div>
       </div>
 
-      {/* Filtres */}
+      <div className="roles-showcase">
+        <h3>Roles disponibles</h3>
+        <div className="roles-grid">
+          {allRoles.map(role => {
+            const permCount = roleService.getRolePermissions(role.id).length;
+            return (
+              <div key={role.id} className="role-card-pill"
+                style={{ opacity: role.isBuiltIn ? 1 : 0.85 }}>
+                <span className="role-card-icon" style={{backgroundColor: role.bgColor, color: role.color}}>
+                  {role.icon}
+                </span>
+                <div className="role-card-info">
+                  <strong>{role.label}</strong>
+                  <span>{role.description}</span>
+                  <small style={{color: '#94a3b8', fontSize: '0.7rem', marginTop: '2px'}}>
+                    {permCount} permissions
+                    {role.isBuiltIn ? ' · Integre' : ' · Personnalise'}
+                  </small>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="filters-section">
         <div className="filters-grid">
           <div className="filter-group">
-            <label>🔍 Rechercher</label>
-            <input
-              type="text"
-              placeholder="Nom, email ou identifiant..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+            <label>Rechercher</label>
+            <input type="text" placeholder="Nom, email ou identifiant..."
+              value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
           </div>
           <div className="filter-group">
-            <label>👤 Rôle</label>
+            <label>Role</label>
             <select value={filterRole} onChange={(e) => setFilterRole(e.target.value)}>
-              <option value="tous">Tous les rôles</option>
-              <option value="admin">Administrateur</option>
-              <option value="vendeur">Vendeur</option>
+              <option value="tous">Tous les roles</option>
+              {allRoles.map(r => (
+                <option key={r.id} value={r.id}>{r.icon} {r.label}</option>
+              ))}
             </select>
           </div>
           <div className="filter-actions">
-            <button className="btn btn-secondary" onClick={() => {
-              setSearchTerm('');
-              setFilterRole('tous');
-            }}>
-              Réinitialiser
+            <button className="btn btn-secondary" onClick={() => { setSearchTerm(''); setFilterRole('tous'); }}>
+              Reinitialiser
             </button>
           </div>
         </div>
       </div>
 
-      {/* Tableau des utilisateurs */}
       <div className="table-container">
         <table className="users-table">
           <thead>
             <tr>
               <th>Utilisateur</th>
-              <th>Rôle</th>
+              <th>Role</th>
               <th>Email</th>
               <th>Localisation</th>
               <th>Statut</th>
-              <th>Date création</th>
+              <th>Date creation</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {utilisateursFiltres.length > 0 ? (
-              utilisateursFiltres.map(user => (
-                <tr key={user.idUser}>
-                  <td>
-                    <div className="user-cell">
-                      <div className={`user-avatar ${user.role === 'admin' ? 'admin' : 'vendeur'}`}>
-                        {user.nomComplet?.charAt(0) || user.username.charAt(0)}
+              utilisateursFiltres.map(user => {
+                const roleMeta = roleService.getRoleMetadata(user.role);
+                return (
+                  <tr key={user.idUser}>
+                    <td>
+                      <div className="user-cell">
+                        <div className={'user-avatar ' + (user.role === 'admin' ? 'admin' : 'vendeur')}>
+                          {user.nomComplet?.charAt(0) || user.username.charAt(0)}
+                        </div>
+                        <div className="user-info">
+                          <strong>{user.nomComplet || user.username}</strong>
+                          <small>@{user.username}</small>
+                        </div>
                       </div>
-                      <div className="user-info">
-                        <strong>{user.nomComplet || user.username}</strong>
-                        <small>@{user.username}</small>
+                    </td>
+                    <td>
+                      <span className={'role-badge role-badge--' + user.role}>
+                        {roleMeta.icon} {roleMeta.label}
+                      </span>
+                    </td>
+                    <td>{user.email || '-'}</td>
+                    <td>{user.localisation || '-'}</td>
+                    <td>
+                      <span className={'status-badge ' + (user.actif !== false ? 'actif' : 'inactif')}>
+                        {user.actif !== false ? 'Actif' : 'Inactif'}
+                      </span>
+                    </td>
+                    <td className="date-cell">{user.dateCreation || '-'}</td>
+                    <td>
+                      <div className="action-buttons">
+                        <button className="btn-action edit" onClick={() => handleEdit(user)} title="Modifier">✏️</button>
+                        {user.role !== 'admin' && (
+                          <button className="btn-action delete" onClick={() => handleDelete(user)} title="Supprimer">🗑️</button>
+                        )}
                       </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={`role-badge ${user.role}`}>
-                      {user.role === 'admin' ? '🛡️ Admin' : '🛒 Vendeur'}
-                    </span>
-                  </td>
-                  <td>{user.email || '-'}</td>
-                  <td>{user.localisation || '-'}</td>
-                  <td>
-                    <span className={`status-badge ${user.actif !== false ? 'actif' : 'inactif'}`}>
-                      {user.actif !== false ? '✅ Actif' : '❌ Inactif'}
-                    </span>
-                  </td>
-                  <td className="date-cell">{user.dateCreation || '-'}</td>
-                  <td>
-                    <div className="action-buttons">
-                      <button 
-                        className="btn-action edit"
-                        onClick={() => handleEdit(user)}
-                        title="Modifier"
-                      >
-                        ✏️
-                      </button>
-                      {user.role !== 'admin' && (
-                        <button 
-                          className="btn-action delete"
-                          onClick={() => handleDelete(user)}
-                          title="Supprimer"
-                        >
-                          🗑️
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td colSpan="7" className="empty-row">
                   <div className="empty-state">
                     <div className="empty-icon">👤</div>
-                    <h3>Aucun utilisateur trouvé</h3>
-                    <p>Ajustez vos filtres ou créez un nouvel utilisateur</p>
+                    <h3>Aucun utilisateur trouve</h3>
+                    <p>Ajustez vos filtres ou creez un nouvel utilisateur</p>
                   </div>
                 </td>
               </tr>
@@ -392,264 +327,151 @@ const GestionUtilisateurs = () => {
         </table>
       </div>
 
-      {/* Modal Ajout Utilisateur */}
       {showModal && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>➕ Ajouter un utilisateur</h2>
-              <button className="modal-close" onClick={() => {
-                setShowModal(false);
-                resetForm();
-              }}>×</button>
+              <h2>Ajouter un utilisateur</h2>
+              <button className="modal-close" onClick={() => { setShowModal(false); resetForm(); }}>x</button>
             </div>
             <form onSubmit={handleSubmit}>
               <div className="modal-body">
                 <div className="form-grid">
                   <div className="form-group">
                     <label>Nom d'utilisateur *</label>
-                    <input
-                      type="text"
-                      name="username"
-                      value={formData.username}
-                      onChange={handleInputChange}
-                      placeholder="ex: vendeur1"
-                      required
-                    />
+                    <input type="text" name="username" value={formData.username}
+                      onChange={handleInputChange} placeholder="ex: vendeur1" required />
                   </div>
                   <div className="form-group">
                     <label>Mot de passe *</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Mot de passe"
-                      required
-                    />
+                    <input type="password" name="password" value={formData.password}
+                      onChange={handleInputChange} placeholder="Mot de passe" required />
                   </div>
                   <div className="form-group">
-                    <label>Prénom *</label>
-                    <input
-                      type="text"
-                      name="prenom"
-                      value={formData.prenom}
-                      onChange={handleInputChange}
-                      placeholder="Jean"
-                      required
-                    />
+                    <label>Prenom *</label>
+                    <input type="text" name="prenom" value={formData.prenom}
+                      onChange={handleInputChange} placeholder="Jean" required />
                   </div>
                   <div className="form-group">
                     <label>Nom *</label>
-                    <input
-                      type="text"
-                      name="nom"
-                      value={formData.nom}
-                      onChange={handleInputChange}
-                      placeholder="Dupont"
-                      required
-                    />
+                    <input type="text" name="nom" value={formData.nom}
+                      onChange={handleInputChange} placeholder="Dupont" required />
                   </div>
                   <div className="form-group">
                     <label>Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="email@exemple.com"
-                    />
+                    <input type="email" name="email" value={formData.email}
+                      onChange={handleInputChange} placeholder="email@exemple.com" />
                   </div>
                   <div className="form-group">
-                    <label>Rôle *</label>
+                    <label>Role *</label>
                     <select name="role" value={formData.role} onChange={handleInputChange} required>
-                      <option value="vendeur">🛒 Vendeur</option>
-                      <option value="admin">🛡️ Administrateur</option>
+                      {allRoles.map(r => (
+                        <option key={r.id} value={r.id}>{r.icon} {r.label}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="form-group">
                     <label>Localisation</label>
-                    <input
-                      type="text"
-                      name="localisation"
-                      value={formData.localisation}
-                      onChange={handleInputChange}
-                      placeholder="Douala, Cameroun"
-                    />
+                    <input type="text" name="localisation" value={formData.localisation}
+                      onChange={handleInputChange} placeholder="Douala, Cameroun" />
                   </div>
                   <div className="form-group full-width">
                     <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        name="actif"
-                        checked={formData.actif}
-                        onChange={handleInputChange}
-                      />
+                      <input type="checkbox" name="actif" checked={formData.actif} onChange={handleInputChange} />
                       <span>Compte actif</span>
                     </label>
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => {
-                  setShowModal(false);
-                  resetForm();
-                }}>
-                  Annuler
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Ajouter l'utilisateur
-                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); resetForm(); }}>Annuler</button>
+                <button type="submit" className="btn btn-primary">Ajouter l'utilisateur</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Modal Modification Utilisateur */}
       {showEditModal && selectedUser && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
-              <h2>✏️ Modifier l'utilisateur</h2>
-              <button className="modal-close" onClick={() => {
-                setShowEditModal(false);
-                resetForm();
-              }}>×</button>
+              <h2>Modifier l'utilisateur</h2>
+              <button className="modal-close" onClick={() => { setShowEditModal(false); resetForm(); }}>x</button>
             </div>
             <form onSubmit={handleUpdate}>
               <div className="modal-body">
                 <div className="form-grid">
                   <div className="form-group">
                     <label>Nom d'utilisateur</label>
-                    <input
-                      type="text"
-                      value={selectedUser.username}
-                      disabled
-                      className="disabled-input"
-                    />
-                    <small>Le nom d'utilisateur ne peut pas être modifié</small>
+                    <input type="text" value={selectedUser.username} disabled className="disabled-input" />
+                    <small>Le nom d'utilisateur ne peut pas etre modifie</small>
                   </div>
                   <div className="form-group">
                     <label>Nouveau mot de passe</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="Laisser vide pour garder l'actuel"
-                    />
+                    <input type="password" name="password" value={formData.password}
+                      onChange={handleInputChange} placeholder="Laisser vide pour garder l'actuel" />
                   </div>
                   <div className="form-group">
-                    <label>Prénom *</label>
-                    <input
-                      type="text"
-                      name="prenom"
-                      value={formData.prenom}
-                      onChange={handleInputChange}
-                      required
-                    />
+                    <label>Prenom *</label>
+                    <input type="text" name="prenom" value={formData.prenom} onChange={handleInputChange} required />
                   </div>
                   <div className="form-group">
                     <label>Nom *</label>
-                    <input
-                      type="text"
-                      name="nom"
-                      value={formData.nom}
-                      onChange={handleInputChange}
-                      required
-                    />
+                    <input type="text" name="nom" value={formData.nom} onChange={handleInputChange} required />
                   </div>
                   <div className="form-group">
                     <label>Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                    />
+                    <input type="email" name="email" value={formData.email} onChange={handleInputChange} />
                   </div>
                   <div className="form-group">
-                    <label>Rôle</label>
+                    <label>Role</label>
                     <select name="role" value={formData.role} onChange={handleInputChange}>
-                      <option value="vendeur">🛒 Vendeur</option>
-                      <option value="admin">🛡️ Administrateur</option>
+                      {allRoles.map(r => (
+                        <option key={r.id} value={r.id}>{r.icon} {r.label}</option>
+                      ))}
                     </select>
                   </div>
                   <div className="form-group">
                     <label>Localisation</label>
-                    <input
-                      type="text"
-                      name="localisation"
-                      value={formData.localisation}
-                      onChange={handleInputChange}
-                    />
+                    <input type="text" name="localisation" value={formData.localisation} onChange={handleInputChange} />
                   </div>
                   <div className="form-group full-width">
                     <label className="checkbox-label">
-                      <input
-                        type="checkbox"
-                        name="actif"
-                        checked={formData.actif}
-                        onChange={handleInputChange}
-                      />
+                      <input type="checkbox" name="actif" checked={formData.actif} onChange={handleInputChange} />
                       <span>Compte actif</span>
                     </label>
                   </div>
                 </div>
               </div>
               <div className="modal-footer">
-                <button type="button" className="btn btn-secondary" onClick={() => {
-                  setShowEditModal(false);
-                  resetForm();
-                }}>
-                  Annuler
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Mettre à jour
-                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => { setShowEditModal(false); resetForm(); }}>Annuler</button>
+                <button type="submit" className="btn btn-primary">Mettre a jour</button>
               </div>
             </form>
           </div>
         </div>
       )}
 
-      {/* Modal Suppression Utilisateur */}
       {showDeleteModal && selectedUser && (
         <div className="modal-overlay">
           <div className="modal modal-sm">
             <div className="modal-header">
-              <h2>🗑️ Supprimer l'utilisateur</h2>
-              <button className="modal-close" onClick={() => {
-                setShowDeleteModal(false);
-                setSelectedUser(null);
-              }}>×</button>
+              <h2>Supprimer l'utilisateur</h2>
+              <button className="modal-close" onClick={() => { setShowDeleteModal(false); setSelectedUser(null); }}>x</button>
             </div>
             <div className="modal-body">
               <div className="delete-confirmation">
                 <div className="warning-icon">⚠️</div>
                 <div className="warning-content">
                   <h3>Supprimer "{selectedUser.nomComplet}" ?</h3>
-                  <p>Cette action est irréversible.</p>
-                  {selectedUser.role === 'vendeur' && (
-                    <div className="warning-message">
-                      <strong>Attention:</strong> Ce vendeur a peut-être des ventes associées.
-                      La suppression ne supprimera pas ses ventes.
-                    </div>
-                  )}
+                  <p>Cette action est irreversible.</p>
                 </div>
               </div>
             </div>
             <div className="modal-footer">
-              <button type="button" className="btn btn-secondary" onClick={() => {
-                setShowDeleteModal(false);
-                setSelectedUser(null);
-              }}>
-                Annuler
-              </button>
-              <button type="button" className="btn btn-danger" onClick={confirmDelete}>
-                Supprimer définitivement
-              </button>
+              <button type="button" className="btn btn-secondary" onClick={() => { setShowDeleteModal(false); setSelectedUser(null); }}>Annuler</button>
+              <button type="button" className="btn btn-danger" onClick={confirmDelete}>Supprimer definitivement</button>
             </div>
           </div>
         </div>

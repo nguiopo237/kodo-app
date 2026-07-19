@@ -3,6 +3,21 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    
+    <!-- ANTI-FOUC : Applique le thème avant le rendu React -->
+    <script>
+      (function() {
+        try {
+          var theme = localStorage.getItem('kodomarket_theme');
+          if (theme === 'dark' || theme === 'light') {
+            document.documentElement.setAttribute('data-theme', theme);
+          } else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+            document.documentElement.setAttribute('data-theme', 'dark');
+          }
+        } catch(e) {}
+      })();
+    </script>
+
     <meta name="theme-color" content="#667eea" />
 
     <!-- SEO -->

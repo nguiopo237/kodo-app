@@ -7,8 +7,30 @@ import FactureVente from '../../components/FactureVente';
 import './MesVentes.css';
 
 const MesVentes = () => {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
   const { success, error: showError } = useNotification();
+
+  const peutVoirVentes = hasPermission('ventes:lire');
+
+  if (!peutVoirVentes) {
+    return (
+      <div className="mes-ventes">
+        <div className="page-header">
+          <div className="header-content">
+            <h1>📋 Mes ventes</h1>
+            <p className="header-subtitle">Historique complet de toutes vos transactions</p>
+          </div>
+        </div>
+        <div className="empty-state" style={{ marginTop: 40 }}>
+          <div className="empty-icon" style={{ fontSize: '4rem' }}>🚫</div>
+          <h3>Permission refusee</h3>
+          <p style={{ color: '#6b7280', maxWidth: 400, margin: '0 auto' }}>
+            Vous n&rsquo;avez pas la permission de consulter les ventes.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acces necessaire.
+          </p>
+        </div>
+      </div>
+    );
+  }
   const [ventes, setVentes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
