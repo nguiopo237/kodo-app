@@ -38,5 +38,13 @@ export const initialData = {
     { idDepense: 1, idVendeur: 2, typeDepense: "dédouanement", description: "Frais de douane pour l'envoi #1", montant: 75000, date: "2024-01-25", idEnvoiAssocie: 1, justificatif: "recu_douane_001.jpg" },
     { idDepense: 2, idVendeur: 3, typeDepense: "logistique", description: "Transport local entrepôt", montant: 37500, date: "2024-01-20", idEnvoiAssocie: null, justificatif: "facture_transport.pdf" },
     { idDepense: 3, idVendeur: 2, typeDepense: "autre", description: "Achat matériel de vente", montant: 60000, date: "2024-01-18", idEnvoiAssocie: null, justificatif: "facture_materiel.pdf" }
+  ],
+
+  charges: [
+    { idCharge: 1, nom: "ENEO", montant: 10000, categorie: "Électricité", description: "Facture électricité mensuelle" },
+    { idCharge: 2, nom: "Salaire employés", montant: 200000, categorie: "Salaires", description: "Paiement des salaires du mois" },
+    { idCharge: 3, nom: "Loyer boutique", montant: 75000, categorie: "Loyer", description: "Loyer mensuel de la boutique" },
+    { idCharge: 4, nom: "Canal+ / Internet", montant: 15000, categorie: "Abonnements", description: "Abonnement internet et TV" },
+    { idCharge: 5, nom: "Eau", montant: 5000, categorie: "Eau", description: "Facture d'eau mensuelle" }
   ]
 };

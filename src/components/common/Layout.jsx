@@ -48,6 +48,7 @@ const Layout = ({ children }) => {
     { path: '/admin/comptabilite', label: 'Comptabilité', icon: '💰', perm: 'comptabilite:lire' },
     { path: '/admin/rapports', label: 'Rapports', icon: '📈', perm: 'rapports:lire' },
     { path: '/admin/roles', label: 'Rôles & Permissions', icon: '🔑', perm: 'utilisateurs:changer_role' },
+    { path: '/admin/charges', label: 'Charges', icon: '💰', perm: 'comptabilite:lire' },
     { path: '/admin/parametres', label: 'Paramètres', icon: '⚙️', perm: 'admin:parametres' },
   ];
 

@@ -21,7 +21,7 @@ export const backupService = {
   // Vérifier l'intégrité des données
   verifierDonnees: () => {
     const data = {};
-    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses'];
+    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses', 'charges'];
     let isValid = true;
     const errors = [];
 

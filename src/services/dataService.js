@@ -59,6 +59,7 @@ const generateId = (tableName) => {
                    tableName === 'ventes' ? 'idVente' :
                    tableName === 'transport' ? 'idEnvoi' :
                    tableName === 'depenses' ? 'idDepense' :
+                   tableName === 'charges' ? 'idCharge' :
                    tableName === 'categories' ? 'id' : 'id';
     
     const maxId = Math.max(...items.map(item => item[idField] || 0), 0);
@@ -72,6 +73,7 @@ const getIdField = (tableName) => {
            tableName === 'ventes' ? 'idVente' :
            tableName === 'transport' ? 'idEnvoi' :
            tableName === 'depenses' ? 'idDepense' :
+           tableName === 'charges' ? 'idCharge' :
            tableName === 'categories' ? 'id' : 'id';
 };
 

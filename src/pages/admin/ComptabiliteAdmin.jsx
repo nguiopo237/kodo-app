@@ -26,6 +26,7 @@ const ComptabiliteAdmin = () => {
   const depenses = data.depenses || [];
   const transport = data.transport || [];
   const produits = data.produits || [];
+  const charges = data.charges || [];
 
   // Filtrage par période
   const getFilteredVentes = () => {
@@ -57,6 +58,7 @@ const ComptabiliteAdmin = () => {
   const totalCA = filteredVentes.reduce((sum, v) => sum + v.totalVente, 0);
   const totalDepenses = filteredDepenses.reduce((sum, d) => sum + d.montant, 0);
   const totalTransport = transport.reduce((sum, t) => sum + (t.coutTransport || 0), 0);
+  const totalChargesFixes = charges.reduce((sum, c) => sum + (c.montant || 0), 0);
 
   // Bénéfice réel avec COGS (coût d'achat des marchandises)
   let coutMarchandises = 0;
@@ -69,7 +71,7 @@ const ComptabiliteAdmin = () => {
   });
 
   const margeBrute = totalCA - coutMarchandises;
-  const beneficeNet = margeBrute - totalDepenses - totalTransport;
+  const beneficeNet = margeBrute - totalDepenses - totalTransport - totalChargesFixes;
   const tauxMarge = totalCA > 0 ? ((margeBrute / totalCA) * 100).toFixed(1) : 0;
 
   // Stats par type de dépense
@@ -159,8 +161,7 @@ const ComptabiliteAdmin = () => {
         </div>
       </div>
 
-      {/* Sous-KPIs */}
-      <div className="compta-subkpi">
+      {/* Sous-KPIs */}        <div className="compta-subkpi">
         <div className="subkpi-item">
           <span>🚚 Transport</span>
           <strong>{formatCFA(totalTransport)}</strong>
@@ -170,12 +171,12 @@ const ComptabiliteAdmin = () => {
           <strong>{formatCFA(totalDepenses)}</strong>
         </div>
         <div className="subkpi-item">
-          <span>📊 Coûts totaux</span>
-          <strong>{formatCFA(totalDepenses + totalTransport)}</strong>
+          <span>💰 Charges fixes</span>
+          <strong>{formatCFA(totalChargesFixes)}</strong>
         </div>
         <div className="subkpi-item">
-          <span>📦 Produits vendus</span>
-          <strong>{filteredVentes.reduce((sum, v) => sum + (v.produitsVendus || []).reduce((s, p) => s + p.quantite, 0), 0)}</strong>
+          <span>📊 Coûts totaux</span>
+          <strong>{formatCFA(totalDepenses + totalTransport + totalChargesFixes)}</strong>
         </div>
       </div>
 
@@ -221,6 +222,11 @@ const ComptabiliteAdmin = () => {
                 <span>Autres dépenses</span>
                 <strong className="negative">{formatCFA(-totalDepenses)}</strong>
                 <span>-{totalCA > 0 ? ((totalDepenses / totalCA) * 100).toFixed(1) : 0}%</span>
+              </div>
+              <div className="resume-row">
+                <span>💰 Charges fixes</span>
+                <strong className="negative">{formatCFA(-totalChargesFixes)}</strong>
+                <span>-{totalCA > 0 ? ((totalChargesFixes / totalCA) * 100).toFixed(1) : 0}%</span>
               </div>
               <div className="resume-row final-row">
                 <span>Bénéfice net</span>

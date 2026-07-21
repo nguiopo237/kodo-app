@@ -288,7 +288,7 @@ export const dashboardService = {
     memoryCache = null;
     
     // Nettoyer localStorage
-    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses', ...SYSTEM_KEYS];
+    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses', 'charges', ...SYSTEM_KEYS];
     keys.forEach(key => {
       localStorage.removeItem(`kodomarket_${key}`);
     });

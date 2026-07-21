@@ -50,6 +50,7 @@ const ComptabiliteVendeur = () => {
   const depenses = (data.depenses || []).filter(d => d.idVendeur === user?.idUser);
   const transport = data.transport || [];
   const produits = data.produits || [];
+  const charges = data.charges || [];
 
   const getFiltered = (items, dateField = 'date') => {
     if (periodFilter === 'all') return items;
@@ -82,7 +83,8 @@ const ComptabiliteVendeur = () => {
   const margeBrute = chiffreAffaires - cogs;
   const tauxMarge = chiffreAffaires > 0 ? ((margeBrute / chiffreAffaires) * 100) : 0;
   const totalTransport = getFiltered(transport, 'dateEnvoi').reduce((s, t) => s + (t.coutTransport || 0), 0);
-  const beneficeNet = margeBrute - totalDepensesFiltre - totalTransport;
+  const totalChargesFixes = charges.reduce((s, c) => s + (c.montant || 0), 0);
+  const beneficeNet = margeBrute - totalDepensesFiltre - totalTransport - totalChargesFixes;
 
   // Stats vendeur
   const totalProduitsVendus = filteredVentes.reduce((s, v) => s + (v.produitsVendus?.length || 0), 0);
@@ -184,8 +186,8 @@ const ComptabiliteVendeur = () => {
       <div className="compta-subkpi">
         <div className="subkpi-item"><span>Depenses periodes</span><strong>{formatCFA(totalDepensesFiltre)}</strong></div>
         <div className="subkpi-item"><span>Transport</span><strong>{formatCFA(totalTransport)}</strong></div>
+        <div className="subkpi-item"><span>Charges fixes</span><strong>{formatCFA(totalChargesFixes)}</strong></div>
         <div className="subkpi-item"><span>Ventes periodes</span><strong>{filteredVentes.length}</strong></div>
-        <div className="subkpi-item"><span>Produits vendus</span><strong>{totalProduitsVendus}</strong></div>
       </div>
 
       {/* Tabs */}
@@ -236,6 +238,11 @@ const ComptabiliteVendeur = () => {
                 <span>🚚 Transport</span>
                 <strong className="negative">{formatCFA(totalTransport)}</strong>
                 <strong style={{ color: '#6b7280' }}>{chiffreAffaires > 0 ? ((totalTransport / chiffreAffaires) * 100).toFixed(1) : 0}%</strong>
+              </div>
+              <div className="resume-row">
+                <span>💰 Charges fixes</span>
+                <strong className="negative">{formatCFA(totalChargesFixes)}</strong>
+                <strong style={{ color: '#6b7280' }}>{chiffreAffaires > 0 ? ((totalChargesFixes / chiffreAffaires) * 100).toFixed(1) : 0}%</strong>
               </div>
               <div className="resume-row final-row">
                 <span><strong>Benefice net</strong></span>

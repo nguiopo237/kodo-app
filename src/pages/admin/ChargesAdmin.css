@@ -1,0 +1,277 @@
+.charges-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.charges-header {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+  box-shadow: 0 4px 20px rgba(239, 68, 68, 0.3) !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.charges-header .btn-primary {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 10px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.charges-header .btn-primary:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.charges-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.charges-summary .summary-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 14px;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.charges-summary .summary-icon {
+  font-size: 2rem;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.charges-summary .summary-icon.total { background: rgba(239, 68, 68, 0.1); }
+.charges-summary .summary-icon.count { background: rgba(59, 130, 246, 0.1); }
+.charges-summary .summary-icon.avg { background: rgba(245, 158, 11, 0.1); }
+
+.charges-summary .summary-label {
+  font-size: 0.78rem;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.charges-summary .summary-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+  display: block;
+}
+
+.charge-form-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.charge-form-card h2 {
+  font-size: 1.1rem;
+  color: #1f2937;
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.charge-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.charge-form .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 16px;
+}
+
+.charge-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.charge-form .form-group label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.charge-form .form-group input,
+.charge-form .form-group select,
+.charge-form .form-group textarea {
+  padding: 10px 14px;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  transition: all 0.3s;
+  background: white;
+  color: #1f2937;
+}
+
+.charge-form .form-group input:focus,
+.charge-form .form-group select:focus,
+.charge-form .form-group textarea:focus {
+  outline: none;
+  border-color: #ef4444;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.1);
+}
+
+.charge-form .form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+.charges-list {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.charges-list .list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+.charges-list .list-header h2 {
+  font-size: 1.1rem;
+  color: #1f2937;
+  margin: 0;
+}
+
+.charges-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.charges-table th {
+  text-align: left;
+  padding: 12px 16px;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.charges-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.charges-table tbody tr:hover {
+  background: #f8fafc;
+}
+
+.charge-category-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.charge-amount {
+  font-weight: 700;
+  color: #dc2626;
+  font-size: 0.95rem;
+}
+
+.charge-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.charge-actions .btn-icon {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 1rem;
+}
+
+.charge-actions .btn-delete {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.charge-actions .btn-delete:hover {
+  background: #fee2e2;
+  transform: scale(1.1);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.empty-state .empty-icon {
+  font-size: 3.5rem;
+  opacity: 0.3;
+  margin-bottom: 14px;
+}
+
+.empty-state h3 {
+  color: #1f2937;
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+}
+
+.empty-state p {
+  color: #6b7280;
+}
+
+@media (max-width: 768px) {
+  .charge-form .form-row {
+    grid-template-columns: 1fr;
+  }
+  .charges-summary {
+    grid-template-columns: 1fr;
+  }
+}

@@ -3,7 +3,7 @@ export const syncService = {
   // Générer un lien de partage des données
   genererLienPartage: () => {
     const data = {};
-    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses'];
+    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses', 'charges'];
     
     keys.forEach(key => {
       const stored = localStorage.getItem(`kodomarket_${key}`);

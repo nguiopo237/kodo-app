@@ -19,6 +19,7 @@ const ComptabiliteAdmin = React.lazy(() => import('./pages/admin/ComptabiliteAdm
 const Rapports = React.lazy(() => import('./pages/admin/Rapports'));
 const Parametres = React.lazy(() => import('./pages/admin/Parametres'));
 const GestionRoles = React.lazy(() => import('./pages/admin/GestionRoles'));
+const ChargesAdmin = React.lazy(() => import('./pages/admin/ChargesAdmin'));
 
 const DashboardVendeur = React.lazy(() => import('./pages/vendeur/DashboardVendeur'));
 const InterfaceVente = React.lazy(() => import('./pages/vendeur/InterfaceVente'));
@@ -124,6 +125,12 @@ function AppContent() {
           <Route path="/admin/roles" element={
             <ProtectedRoute requiredRole="admin">
               <GestionRoles />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/admin/charges" element={
+            <ProtectedRoute requiredRole="admin">
+              <ChargesAdmin />
             </ProtectedRoute>
           } />
 
