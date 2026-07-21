@@ -1,29 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { dashboardService } from '../../services/dashboardService';
+import { useAuth } from '../../context/AuthContext';
+import { useAllData } from '../../hooks/useDataQueries';
 import { formatCFA } from '../../utils/formatters';
 import { useNotification } from '../../context/NotificationContext';
 import './Rapports.css';
 
 const Rapports = () => {
-  const [data, setData] = useState({});
-  const [loading, setLoading] = useState(true);
+  const { hasPermission } = useAuth();
+  const { data: allData, isLoading } = useAllData();
   const [reportType, setReportType] = useState('ventes');
   const [dateDebut, setDateDebut] = useState('');
   const [dateFin, setDateFin] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
-  const { info } = useNotification();
+  const { info, warning } = useNotification();
 
-  const chargerDonnees = () => {
-    setLoading(true);
-    const allData = dashboardService.loadData();
-    setData(allData);
-    setLoading(false);
-  };
+  const peutVoirRapports = hasPermission('rapports:lire');
 
   useEffect(() => {
-    chargerDonnees();
-  }, []);
+    if (!peutVoirRapports) {
+      warning('⛔ Vous n\'avez pas la permission de consulter les rapports.');
+    }
+  }, [peutVoirRapports, warning]);
 
+  const data = allData || {};
   const ventes = data.ventes || [];
   const produits = data.produits || [];
   const utilisateurs = data.utilisateurs || [];
@@ -142,7 +141,17 @@ const Rapports = () => {
     info('Rapport ' + type + ' exporte en CSV');
   };
 
-  if (loading) {
+  if (!peutVoirRapports) {
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">🚫</div>
+        <h3>Permission refus&eacute;e</h3>
+        <p>Vous n&rsquo;avez pas la permission de consulter les rapports.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

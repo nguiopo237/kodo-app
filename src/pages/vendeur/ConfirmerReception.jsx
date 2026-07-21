@@ -3,14 +3,27 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { dataService } from '../../services/dataService';
 import { dashboardService } from '../../services/dashboardService';
+import { useAllData, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import { formatCFA } from '../../utils/formatters';
 import './ConfirmerReception.css';
 
 const ConfirmerReception = () => {
   const { user, hasPermission } = useAuth();
-  const { success, error: showError } = useNotification();
+  const { success, error: showError, warning } = useNotification();
 
   const peutConfirmer = hasPermission('transport:confirmer');
+
+  useEffect(() => {
+    if (!peutConfirmer) {
+      warning('⛔ Vous n\'avez pas la permission de confirmer les réceptions.');
+    }
+  }, [peutConfirmer, warning]);
+
+  const { data: allData = {}, isLoading } = useAllData();
+  const invalidate = useInvalidateQueries();
+
+  const envois = (allData.transport || []).sort((a, b) => new Date(b.dateEnvoi) - new Date(a.dateEnvoi));
+  const produits = allData.produits || [];
 
   if (!peutConfirmer) {
     return (
@@ -31,27 +44,11 @@ const ConfirmerReception = () => {
       </div>
     );
   }
-  const [envois, setEnvois] = useState([]);
-  const [produits, setProduits] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterStatut, setFilterStatut] = useState('');
   const [showDetModal, setShowDetModal] = useState(false);
   const [showDelModal, setShowDelModal] = useState(false);
   const [selectedEnvoi, setSelectedEnvoi] = useState(null);
-
-  const chargerDonnees = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const data = dataService.getAll();
-      const envoisData = (data.transport || []).sort((a, b) => new Date(b.dateEnvoi) - new Date(a.dateEnvoi));
-      setEnvois(envoisData);
-      setProduits(data.produits || []);
-      setLoading(false);
-    }, 300);
-  };
-
-  useEffect(() => { chargerDonnees(); }, []);
 
   const envoisFiltres = envois.filter(e => {
     const matchSearch = !search ||
@@ -115,7 +112,7 @@ const ConfirmerReception = () => {
       });
 
       dashboardService.saveData('stock', stock);
-      chargerDonnees();
+      invalidate(queryKeys.transport, queryKeys.stock, queryKeys.produits);
       success('✅ Reception confirmee ! Le stock a ete mis a jour.');
     } catch (err) {
       showError('Erreur: ' + err.message);
@@ -133,7 +130,7 @@ const ConfirmerReception = () => {
       dataService.delete('transport', selectedEnvoi.idEnvoi);
       setShowDelModal(false);
       setSelectedEnvoi(null);
-      chargerDonnees();
+      invalidate(queryKeys.transport);
       success('Envoi supprime avec succes');
     } catch (err) {
       showError('Erreur: ' + err.message);
@@ -145,7 +142,7 @@ const ConfirmerReception = () => {
     setShowDetModal(true);
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

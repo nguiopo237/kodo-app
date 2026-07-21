@@ -2,17 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import { categorieService } from '../../services/categorieService';
 import { produitService } from '../../services/produitService';
 import { venteService } from '../../services/venteService';
+import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useCategories, useProduits, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import BarcodeCell from '../../components/BarcodeCell';
 import './GestionComplete.css';
 
 const GestionComplete = () => {
+    const { hasPermission } = useAuth();
+    const { data: allCategories, isLoading: catLoading } = useCategories();
+    const { data: allProduits, isLoading: prodLoading } = useProduits();
+    const invalidate = useInvalidateQueries();
     const [activeTab, setActiveTab] = useState('categories');
-    const [loading, setLoading] = useState(false);
-    const [categories, setCategories] = useState([]);
-    const [produits, setProduits] = useState([]);
-    const [ventes, setVentes] = useState([]);
-    const [stats, setStats] = useState({});
+    const [ventes, setVentes] = useState(() => venteService.getVentesDetaillees() || []);
+    const [stats, setStats] = useState(() => venteService.getStatistiquesVentes() || {});
 
     const [showCategorieModal, setShowCategorieModal] = useState(false);
     const [showProduitModal, setShowProduitModal] = useState(false);
@@ -20,7 +23,7 @@ const GestionComplete = () => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showDeleteProduitModal, setShowDeleteProduitModal] = useState(false);
     const [showDeleteVenteModal, setShowDeleteVenteModal] = useState(false);
-    const { success, error: showError } = useNotification();
+    const { success, error: showError, warning } = useNotification();
     const [showEditProduitModal, setShowEditProduitModal] = useState(false);
     const fileInputRef = useRef(null);
     const [showImportModal, setShowImportModal] = useState(false);
@@ -93,7 +96,8 @@ const GestionComplete = () => {
 
             setShowEditProduitModal(false);
             setEditProduit(null);
-            chargerDonnees();
+            invalidate(queryKeys.produits, queryKeys.categories);
+            chargerVentes();
             success('✅ Produit modifié avec succès !');
         } catch (error) {
             showError('❌ ' + error.message);
@@ -114,25 +118,23 @@ const GestionComplete = () => {
     const [quantiteVente, setQuantiteVente] = useState(1);
     const [selectedProduitsVente, setSelectedProduitsVente] = useState([]);
 
-    const chargerDonnees = () => {
-        setLoading(true);
-        setTimeout(() => {
-            const categoriesData = categorieService.getStatsParCategorie();
-            const produitsData = produitService.getProduits();
-            const ventesData = venteService.getVentesDetaillees();
-            const statsData = venteService.getStatistiquesVentes();
-
-            setCategories(categoriesData);
-            setProduits(produitsData);
-            setVentes(ventesData);
-            setStats(statsData);
-            setLoading(false);
-        }, 500);
-    };
+    const peutGererComplet = hasPermission('produits:lire');
 
     useEffect(() => {
-        chargerDonnees();
-    }, []);
+      if (!peutGererComplet) {
+        warning('⛔ Vous n\'avez pas la permission d\'accéder à la gestion complète.');
+      }
+    }, [peutGererComplet, warning]);
+
+    const categories = allCategories || [];
+    const produits = allProduits || [];
+    const loading = catLoading || prodLoading;
+
+    // Rafraichir ventes + stats apres mutation
+    const chargerVentes = () => {
+        setVentes(venteService.getVentesDetaillees() || []);
+        setStats(venteService.getStatistiquesVentes() || {});
+    };
 
     // ============================================
     // EXPORT CSV PRODUITS
@@ -144,7 +146,7 @@ const GestionComplete = () => {
         }
 
         const bom = '\uFEFF';
-        const headers = 'Nom du produit;Catégorie;Stock restant;Seuil alerte;Prix achat (€);Prix vente (€);Marge %;Marge (€);Quantité vendue;Date ajout';
+        const headers = 'Nom du produit;Catégorie;Stock restant;Seuil alerte;Prix achat (Fcfa );Prix vente (Fcfa );Marge %;Marge (Fcfa );Quantité vendue;Date ajout';
         const rows = produits.map(p => {
             const prixAchat = p.prixExact || 0;
             const prixVente = p.prixBoutique || 0;
@@ -273,7 +275,8 @@ const GestionComplete = () => {
         setShowImportModal(false);
         setImportData([]);
         setImportErrors(detailsErreurs);
-        chargerDonnees();
+        invalidate(queryKeys.produits, queryKeys.categories);
+        chargerVentes();
 
         if (errorCount > 0) {
             showError(`${successCount} importé(s), ${errorCount} erreur(s). Consultez la console pour les détails.`);
@@ -290,7 +293,8 @@ const GestionComplete = () => {
             categorieService.ajouterCategorie(categorieForm);
             setShowCategorieModal(false);
             setCategorieForm({ nom: '', description: '', couleur: '#10b981', icon: '🍎' });
-            chargerDonnees();
+            invalidate(queryKeys.categories, queryKeys.produits);
+            chargerVentes();
             success('✅ Catégorie ajoutée avec succès !');
         } catch (error) {
             showError('❌ ' + error.message);
@@ -301,7 +305,8 @@ const GestionComplete = () => {
         try {
             categorieService.supprimerCategorie(selectedItem.id);
             setShowDeleteModal(false);
-            chargerDonnees();
+            invalidate(queryKeys.categories, queryKeys.produits);
+            chargerVentes();
             success('🗑️ Catégorie supprimée avec succès !');
         } catch (error) {
             showError('❌ ' + error.message);
@@ -336,7 +341,8 @@ const GestionComplete = () => {
                 alerteSeuil: 10
             });
 
-            chargerDonnees();
+            invalidate(queryKeys.produits, queryKeys.categories);
+            chargerVentes();
             success('✅ Produit ajouté avec succès !');
         } catch (error) {
             showError('❌ ' + error.message);
@@ -351,7 +357,8 @@ const GestionComplete = () => {
             setShowDeleteProduitModal(false);
             setSelectedProduit(null);
             setForceDelete(false);
-            chargerDonnees();
+            invalidate(queryKeys.produits, queryKeys.categories);
+            chargerVentes();
             success('🗑️ Produit supprimé avec succès !');
         } catch (error) {
             if (error.message.includes('forcer la suppression')) {
@@ -428,7 +435,8 @@ const GestionComplete = () => {
             });
             setSelectedProduitsVente([]);
 
-            chargerDonnees();
+            invalidate(queryKeys.produits, queryKeys.categories, queryKeys.stats);
+            chargerVentes();
             success('✅ Vente enregistrée avec succès !');
         } catch (error) {
             showError('❌ ' + error.message);
@@ -446,7 +454,8 @@ const GestionComplete = () => {
             venteService.supprimerVente(selectedVente.idVente);
             setShowDeleteVenteModal(false);
             setSelectedVente(null);
-            chargerDonnees();
+            invalidate(queryKeys.produits, queryKeys.stats);
+            chargerVentes();
             success('🗑️ Vente supprimée avec succès !');
         } catch (error) {
             showError('❌ ' + error.message);
@@ -460,7 +469,8 @@ const GestionComplete = () => {
 
         try {
             venteService.annulerVente(vente.idVente);
-            chargerDonnees();
+            invalidate(queryKeys.produits, queryKeys.stats);
+            chargerVentes();
             success('↩️ Vente annulée avec succès !');
         } catch (error) {
             showError('❌ ' + error.message);
@@ -472,6 +482,16 @@ const GestionComplete = () => {
         produit.categorie.toLowerCase().includes(searchTerm.toLowerCase()) ||
         (produit.codeBarre && produit.codeBarre.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+
+    if (!peutGererComplet) {
+      return (
+        <div className="empty-state">
+          <div className="empty-icon">🚫</div>
+          <h3>Permission refus&eacute;e</h3>
+          <p>Vous n&rsquo;avez pas la permission d&rsquo;acc&eacute;der &agrave; la gestion compl&egrave;te.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
+        </div>
+      );
+    }
 
     if (loading) {
         return (
@@ -504,7 +524,7 @@ const GestionComplete = () => {
                     </div>
                     <div className="stat-item">
                         <span>CA Total</span>
-                        <strong>€{stats.totalCA || 0}</strong>
+                        <strong>Fcfa {stats.totalCA || 0}</strong>
                     </div>
                 </div>
             </div>
@@ -599,7 +619,7 @@ const GestionComplete = () => {
                                     </div>
                                     <div className="stat">
                                         <span>CA</span>
-                                        <strong>€{categorie.chiffreAffaires || 0}</strong>
+                                        <strong>Fcfa {categorie.chiffreAffaires || 0}</strong>
                                     </div>
                                 </div>
 
@@ -665,8 +685,8 @@ const GestionComplete = () => {
                                         </td>
                                         <td>
                                             <div className="price-display">
-                                                <div>Achat: <strong>€{produit.prixExact || 0}</strong></div>
-                                                <div>Vente: <strong>€{produit.prixBoutique || 0}</strong></div>
+                                                <div>Achat: <strong>Fcfa {produit.prixExact || 0}</strong></div>
+                                                <div>Vente: <strong>Fcfa {produit.prixBoutique || 0}</strong></div>
                                             </div>
                                         </td>
                                         <td>
@@ -723,7 +743,7 @@ const GestionComplete = () => {
                                 <div className="stat-icon">💰</div>
                                 <div className="stat-content">
                                     <h3>Chiffre d'affaires</h3>
-                                    <div className="stat-value">€{stats.totalCA || 0}</div>
+                                    <div className="stat-value">Fcfa {stats.totalCA || 0}</div>
                                 </div>
                             </div>
                             <div className="vente-stat-card">
@@ -768,11 +788,11 @@ const GestionComplete = () => {
                                                     {vente.produitsDetails?.map((p, index) => (
                                                         <div key={index} className="produit-vente">
                                                             <span>{p.nomProduit}</span>
-                                                            <small>{p.quantite} × €{p.prixUnitaire}</small>
+                                                            <small>{p.quantite} × Fcfa {p.prixUnitaire}</small>
                                                         </div>
                                                     ))}
                                                 </td>
-                                                <td className="vente-total">€{vente.totalVente}</td>
+                                                <td className="vente-total">Fcfa {vente.totalVente}</td>
                                                 <td className="vente-paiement">
                                                     <span className={`paiement-badge ${vente.typePaiement}`}>
                                                         {vente.typePaiement}
@@ -852,8 +872,8 @@ const GestionComplete = () => {
                                                     <td><strong>{p.nomProduit}</strong></td>
                                                     <td><span className="categorie-badge" style={{ background: '#6b7280' }}>{p.categorie}</span></td>
                                                     <td>{p.quantiteInitiale}</td>
-                                                    <td>{p.prixExact.toLocaleString('fr-FR')} €</td>
-                                                    <td>{p.prixBoutique.toLocaleString('fr-FR')} €</td>
+                                                    <td>{p.prixExact.toLocaleString('fr-FR')} Fcfa </td>
+                                                    <td>{p.prixBoutique.toLocaleString('fr-FR')} Fcfa </td>
                                                 </tr>
                                             ))}
                                             {importData.length > 20 && (
@@ -1011,7 +1031,7 @@ const GestionComplete = () => {
                                                 />
                                             </div>
                                             <div className="form-group">
-                                                <label>Prix d'achat (€)</label>
+                                                <label>Prix d'achat (Fcfa )</label>
                                                 <input
                                                     type="number"
                                                     value={produitForm.prixExact}
@@ -1021,7 +1041,7 @@ const GestionComplete = () => {
                                                 />
                                             </div>
                                             <div className="form-group">
-                                                <label>Prix de vente (€)</label>
+                                                <label>Prix de vente (Fcfa )</label>
                                                 <input
                                                     type="number"
                                                     value={produitForm.prixBoutique}
@@ -1063,7 +1083,7 @@ const GestionComplete = () => {
                                                         <div className="produit-details">
                                                             <strong>{produit.nomProduit}</strong>
                                                             <div className="produit-stock">Stock: {produit.quantiteRestante} unités</div>
-                                                            <div className="produit-prix">€{produit.prixBoutique || 10}</div>
+                                                            <div className="produit-prix">Fcfa {produit.prixBoutique || 10}</div>
                                                         </div>
                                                     </div>
                                                     <div className="produit-actions">
@@ -1098,9 +1118,9 @@ const GestionComplete = () => {
                                                             <div key={index} className="panier-item">
                                                                 <div className="item-info">
                                                                     <strong>{produit.nomProduit}</strong>
-                                                                    <small>{produit.quantite} × €{produit.prixUnitaire}</small>
+                                                                    <small>{produit.quantite} × Fcfa {produit.prixUnitaire}</small>
                                                                 </div>
-                                                                <div className="item-total">€{produit.prixTotal}</div>
+                                                                <div className="item-total">Fcfa {produit.prixTotal}</div>
                                                                 <button type="button" className="btn-remove" onClick={() => supprimerProduitVente(produit.idProduit)}>×</button>
                                                             </div>
                                                         ))}
@@ -1108,7 +1128,7 @@ const GestionComplete = () => {
                                                     <div className="panier-total">
                                                         <div className="total-row grand-total">
                                                             <span>Total:</span>
-                                                            <span>€{selectedProduitsVente.reduce((sum, p) => sum + p.prixTotal, 0).toFixed(2)}</span>
+                                                            <span>Fcfa {selectedProduitsVente.reduce((sum, p) => sum + p.prixTotal, 0).toFixed(2)}</span>
                                                         </div>
                                                     </div>
                                                     <div className="paiement-section">
@@ -1225,7 +1245,7 @@ const GestionComplete = () => {
                                     <div className="vente-details">
                                         <div className="detail-item"><span>Date:</span><strong>{selectedVente.dateFormatee}</strong></div>
                                         <div className="detail-item"><span>Vendeur:</span><strong>{selectedVente.vendeurNom}</strong></div>
-                                        <div className="detail-item"><span>Total:</span><strong className="vente-total-display">€{selectedVente.totalVente}</strong></div>
+                                        <div className="detail-item"><span>Total:</span><strong className="vente-total-display">Fcfa {selectedVente.totalVente}</strong></div>
                                     </div>
                                     <p className="warning-text"><strong>ATTENTION:</strong> Cette action est irréversible.</p>
                                 </div>
@@ -1318,7 +1338,7 @@ const GestionComplete = () => {
             </div>
             
             <div className="form-group">
-              <label>Prix d'achat (€)</label>
+              <label>Prix d'achat (Fcfa )</label>
               <input
                 type="number"
                 value={editFormData.prixExact}
@@ -1329,7 +1349,7 @@ const GestionComplete = () => {
             </div>
             
             <div className="form-group">
-              <label>Prix de vente (€)</label>
+              <label>Prix de vente (Fcfa )</label>
               <input
                 type="number"
                 value={editFormData.prixBoutique}

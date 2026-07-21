@@ -1,169 +1,105 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
 import { dashboardService } from '../../services/dashboardService';
-import { venteService } from '../../services/venteService';
+import { useAllData, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import './DashboardVendeur.css';
 
 const DashboardVendeur = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    totalVentes: 0,
-    totalCA: 0,
-    caAujourdhui: 0,
-    ventesAujourdhui: 0,
-    produitsPopulaires: [],
-    // Nouvelles statistiques détaillées
-    moyenneParVente: 0,
-    meilleurJour: { jour: '-', montant: 0 },
-    meilleurProduit: { nom: '-', quantite: 0 },
-    paiementRepartition: {},
-    ventesParMois: []
-  });
-  const [ventesRecent, setVentesRecent] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { data: allData = {}, isLoading } = useAllData();
   const [showProfile, setShowProfile] = useState(false);
 
-  useEffect(() => {
-    chargerDonnees();
-  }, []);
+  const ventes = (allData.ventes || []).filter(v => v.idVendeur === user?.idUser);
+  const utilisateurs = allData.utilisateurs || [];
+  const produits = allData.produits || [];
 
-  const chargerDonnees = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const data = dashboardService.loadData();
-      const ventes = data.ventes || [];
-      const utilisateurs = data.utilisateurs || [];
-      const produits = data.produits || [];
+  // Statistiques calculees directement depuis les donnees
+  const totalVentes = ventes.length;
+  const totalCA = ventes.reduce((sum, v) => sum + v.totalVente, 0);
+  const aujourdhui = new Date().toDateString();
+  const ventesAujourdhui = ventes.filter(v => new Date(v.date).toDateString() === aujourdhui);
+  const caAujourdhui = ventesAujourdhui.reduce((sum, v) => sum + v.totalVente, 0);
+  const moyenneParVente = totalVentes > 0 ? Math.round(totalCA / totalVentes) : 0;
 
-      // Filtrer les ventes du vendeur
-      const mesVentes = ventes.filter(v => v.idVendeur === user?.idUser);
-      
-      // Statistiques
-      const totalVentes = mesVentes.length;
-      const totalCA = mesVentes.reduce((sum, v) => sum + v.totalVente, 0);
-      
-      const aujourdhui = new Date().toDateString();
-      const ventesAujourdhui = mesVentes.filter(v => 
-        new Date(v.date).toDateString() === aujourdhui
-      );
-      const caAujourdhui = ventesAujourdhui.reduce((sum, v) => sum + v.totalVente, 0);
+  // Ventes par jour
+  const ventesParJour = {};
+  ventes.forEach(v => {
+    const jour = new Date(v.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+    if (!ventesParJour[jour]) ventesParJour[jour] = 0;
+    ventesParJour[jour] += v.totalVente;
+  });
+  let meilleurJour = { jour: '-', montant: 0 };
+  Object.entries(ventesParJour).forEach(([jour, montant]) => {
+    if (montant > meilleurJour.montant) meilleurJour = { jour, montant };
+  });
 
-      // --- STATISTIQUES DÉTAILLÉES ---
+  // Produits populaires
+  const produitsVendusMap = {};
+  ventes.forEach(vente => {
+    (vente.produitsVendus || []).forEach(item => {
+      if (!produitsVendusMap[item.idProduit]) {
+        produitsVendusMap[item.idProduit] = { idProduit: item.idProduit, quantite: 0, chiffreAffaires: 0 };
+      }
+      produitsVendusMap[item.idProduit].quantite += item.quantite;
+      produitsVendusMap[item.idProduit].chiffreAffaires += item.prixTotal;
+    });
+  });
+  const produitsPopulaires = Object.values(produitsVendusMap)
+    .sort((a, b) => b.quantite - a.quantite)
+    .slice(0, 5)
+    .map(item => {
+      const produit = produits.find(p => p.idProduit === item.idProduit);
+      return { ...item, nomProduit: produit?.nomProduit || 'Produit inconnu', categorie: produit?.categorie || 'Non catégorisé', prixBoutique: produit?.prixBoutique || 0 };
+    });
+  const meilleurProduit = produitsPopulaires.length > 0
+    ? { nom: produitsPopulaires[0].nomProduit, quantite: produitsPopulaires[0].quantite }
+    : { nom: '-', quantite: 0 };
 
-      // Moyenne par vente
-      const moyenneParVente = totalVentes > 0 ? Math.round(totalCA / totalVentes) : 0;
+  // Paiement repartition
+  const paiementRepartition = {};
+  ventes.forEach(v => {
+    const type = v.typePaiement || 'espèces';
+    if (!paiementRepartition[type]) paiementRepartition[type] = { nombre: 0, montant: 0 };
+    paiementRepartition[type].nombre += 1;
+    paiementRepartition[type].montant += v.totalVente;
+  });
 
-      // Meilleur jour de vente
-      const ventesParJour = {};
-      mesVentes.forEach(v => {
-        const jour = new Date(v.date).toLocaleDateString('fr-FR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        if (!ventesParJour[jour]) ventesParJour[jour] = 0;
-        ventesParJour[jour] += v.totalVente;
-      });
-      let meilleurJour = { jour: '-', montant: 0 };
-      Object.entries(ventesParJour).forEach(([jour, montant]) => {
-        if (montant > meilleurJour.montant) meilleurJour = { jour, montant };
-      });
+  // Ventes par mois
+  const ventesParMoisObj = {};
+  ventes.forEach(v => {
+    const mois = new Date(v.date).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
+    if (!ventesParMoisObj[mois]) ventesParMoisObj[mois] = { mois, nombre: 0, montant: 0 };
+    ventesParMoisObj[mois].nombre += 1;
+    ventesParMoisObj[mois].montant += v.totalVente;
+  });
+  const ventesParMois = Object.values(ventesParMoisObj).slice(-6);
 
-      // Meilleur produit
-      const produitsVendus = {};
-      mesVentes.forEach(vente => {
-        vente.produitsVendus.forEach(item => {
-          if (!produitsVendus[item.idProduit]) {
-            produitsVendus[item.idProduit] = {
-              idProduit: item.idProduit,
-              quantite: 0,
-              chiffreAffaires: 0
-            };
-          }
-          produitsVendus[item.idProduit].quantite += item.quantite;
-          produitsVendus[item.idProduit].chiffreAffaires += item.prixTotal;
-        });
-      });
-
-      const produitsPopulaires = Object.values(produitsVendus)
-        .sort((a, b) => b.quantite - a.quantite)
-        .slice(0, 5)
-        .map(item => {
-          const produit = produits.find(p => p.idProduit === item.idProduit);
-          return {
-            ...item,
-            nomProduit: produit?.nomProduit || 'Produit inconnu',
-            categorie: produit?.categorie || 'Non catégorisé',
-            prixBoutique: produit?.prixBoutique || 0
-          };
-        });
-
-      const meilleurProduit = produitsPopulaires.length > 0 
-        ? { nom: produitsPopulaires[0].nomProduit, quantite: produitsPopulaires[0].quantite }
-        : { nom: '-', quantite: 0 };
-
-      // Répartition par mode de paiement
-      const paiementRepartition = {};
-      mesVentes.forEach(v => {
-        const type = v.typePaiement || 'espèces';
-        if (!paiementRepartition[type]) paiementRepartition[type] = { nombre: 0, montant: 0 };
-        paiementRepartition[type].nombre += 1;
-        paiementRepartition[type].montant += v.totalVente;
-      });
-
-      // Ventes par mois (pour graphique)
-      const ventesParMois = {};
-      mesVentes.forEach(v => {
-        const mois = new Date(v.date).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' });
-        if (!ventesParMois[mois]) ventesParMois[mois] = { mois, nombre: 0, montant: 0 };
-        ventesParMois[mois].nombre += 1;
-        ventesParMois[mois].montant += v.totalVente;
-      });
-      const ventesParMoisArray = Object.values(ventesParMois).slice(-6);
-
-      // Ventes récentes
-      const recentes = mesVentes
-        .sort((a, b) => new Date(b.date) - new Date(a.date))
-        .slice(0, 10)
-        .map(vente => {
-          const vendeur = utilisateurs.find(u => u.idUser === vente.idVendeur);
-          const produitPrincipal = vente.produitsVendus[0];
-          const produit = produits.find(p => p.idProduit === produitPrincipal?.idProduit);
-          return {
-            ...vente,
-            vendeurNom: vendeur?.nomComplet || 'Vendeur',
-            produitNom: produit?.nomProduit || 'Produit',
-            quantite: produitPrincipal?.quantite || 0,
-            dateFormatee: new Date(vente.date).toLocaleDateString('fr-FR', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })
-          };
-        });
-
-      setStats({
-        totalVentes,
-        totalCA,
-        caAujourdhui,
-        ventesAujourdhui: ventesAujourdhui.length,
-        produitsPopulaires,
-        moyenneParVente,
-        meilleurJour,
-        meilleurProduit,
-        paiementRepartition,
-        ventesParMois: ventesParMoisArray
-      });
-      setVentesRecent(recentes);
-      setLoading(false);
-    }, 500);
-  };
+  // Ventes recentes
+  const ventesRecent = ventes
+    .sort((a, b) => new Date(b.date) - new Date(a.date))
+    .slice(0, 10)
+    .map(vente => {
+      const vendeur = utilisateurs.find(u => u.idUser === vente.idVendeur);
+      const produitPrincipal = (vente.produitsVendus || [])[0];
+      const produit = produits.find(p => p.idProduit === produitPrincipal?.idProduit);
+      return {
+        ...vente,
+        vendeurNom: vendeur?.nomComplet || 'Vendeur',
+        produitNom: produit?.nomProduit || 'Produit',
+        quantite: produitPrincipal?.quantite || 0,
+        dateFormatee: new Date(vente.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }),
+      };
+    });
 
   const formatCFA = (montant) => {
     if (!montant && montant !== 0) return '0 FCFA';
     return `${montant.toLocaleString('fr-FR')} FCFA`;
   };
 
-  if (loading) {
+  const stats = { totalVentes, totalCA, caAujourdhui, ventesAujourdhui: ventesAujourdhui.length, produitsPopulaires, moyenneParVente, meilleurJour, meilleurProduit, paiementRepartition, ventesParMois };
+
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

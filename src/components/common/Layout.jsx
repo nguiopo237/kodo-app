@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getRoleMetadata } from '../../services/roleService';
@@ -14,6 +14,27 @@ const Layout = ({ children }) => {
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const rafRef = useRef(null);
+  const mouseRef = useRef({ x: 0, y: 0, el: null });
+
+  const handleNavMouseMove = useCallback((e) => {
+    mouseRef.current = { x: e.clientX, y: e.clientY, el: e.currentTarget };
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = null;
+      const { x: cx, y: cy, el } = mouseRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty('--mouse-x', `${((cx - rect.left) / rect.width) * 100}%`);
+      el.style.setProperty('--mouse-y', `${((cy - rect.top) / rect.height) * 100}%`);
+    });
+  }, []);
+
+  const handleNavMouseLeave = (e) => {
+    e.currentTarget.style.removeProperty('--mouse-x');
+    e.currentTarget.style.removeProperty('--mouse-y');
   };
 
   const roleMeta = getRoleMetadata(user?.role);
@@ -62,6 +83,8 @@ const Layout = ({ children }) => {
                 <Link
                   to={item.path}
                   className={`nav-link ${location.pathname === item.path ? 'active' : ''}`}
+                  onMouseMove={handleNavMouseMove}
+                  onMouseLeave={handleNavMouseLeave}
                 >
                   <span className="nav-icon">{item.icon}</span>
                   <span className="nav-label">{item.label}</span>
@@ -96,7 +119,12 @@ const Layout = ({ children }) => {
               </div>
             </div>
           </div>
-          <button onClick={handleLogout} className="logout-btn">
+          <button
+            onClick={handleLogout}
+            className="logout-btn"
+            onMouseMove={handleNavMouseMove}
+            onMouseLeave={handleNavMouseLeave}
+          >
             <span>🚪</span>
             <span>Déconnexion</span>
           </button>
@@ -123,7 +151,7 @@ const Layout = ({ children }) => {
           </div>
         </header>
         
-        <div className="content-wrapper fade-in">
+        <div className="content-wrapper">
           {children}
         </div>
       </main>

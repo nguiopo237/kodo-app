@@ -1,35 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardService } from '../../services/dashboardService';
+import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useUtilisateurs, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import * as roleService from '../../services/roleService';
+import bcrypt from 'bcryptjs';
 import './GestionUtilisateurs.css';
 
 const GestionUtilisateurs = () => {
-  const [utilisateurs, setUtilisateurs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { hasPermission } = useAuth();
+  const { data: allUtilisateurs, isLoading } = useUtilisateurs();
+  const invalidate = useInvalidateQueries();
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('tous');
-  const { success, error: showError } = useNotification();
+  const { success, error: showError, warning } = useNotification();
 
   const [formData, setFormData] = useState({
     username: '', password: '', prenom: '', nom: '',
     email: '', role: 'vendeur', localisation: '', actif: true
   });
 
-  const chargerUtilisateurs = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const data = dashboardService.loadData();
-      setUtilisateurs(data.utilisateurs || []);
-      setLoading(false);
-    }, 500);
-  };
+  const peutVoirUtilisateurs = hasPermission('utilisateurs:lire');
 
-  useEffect(() => { chargerUtilisateurs(); }, []);
+  useEffect(() => {
+    if (!peutVoirUtilisateurs) {
+      warning('⛔ Vous n\'avez pas la permission de gérer les utilisateurs.');
+    }
+  }, [peutVoirUtilisateurs, warning]);
+
+  const utilisateurs = allUtilisateurs || [];
 
   const utilisateursFiltres = utilisateurs.filter(user => {
     const s = searchTerm.toLowerCase();
@@ -57,10 +60,11 @@ const GestionUtilisateurs = () => {
         showError('Ce nom d\'utilisateur existe deja'); return;
       }
       const newId = Math.max(...users.map(u => u.idUser), 0) + 1;
+      const hashedPassword = bcrypt.hashSync(formData.password, 8);
       users.push({
         idUser: newId,
         username: formData.username,
-        password: formData.password,
+        password: hashedPassword,
         prenom: formData.prenom.trim(),
         nom: formData.nom.trim(),
         nomComplet: formData.prenom.trim() + ' ' + formData.nom.trim(),
@@ -71,9 +75,9 @@ const GestionUtilisateurs = () => {
         dateCreation: new Date().toISOString().split('T')[0]
       });
       dashboardService.saveData('utilisateurs', users);
+      invalidate(queryKeys.utilisateurs);
       setShowModal(false);
       resetForm();
-      chargerUtilisateurs();
       success('Utilisateur ajoute avec succes !');
     } catch (error) { showError(error.message); }
   };
@@ -102,7 +106,7 @@ const GestionUtilisateurs = () => {
       const users = data.utilisateurs || [];
       const index = users.findIndex(u => u.idUser === selectedUser.idUser);
       if (index !== -1) {
-        users[index] = {
+        const updateData = {
           ...users[index],
           prenom: formData.prenom.trim(),
           nom: formData.nom.trim(),
@@ -110,12 +114,15 @@ const GestionUtilisateurs = () => {
           email: formData.email || '', role: formData.role,
           localisation: formData.localisation || '',
           actif: formData.actif,
-          ...(formData.password ? { password: formData.password } : {})
         };
+        if (formData.password) {
+          updateData.password = bcrypt.hashSync(formData.password, 8);
+        }
+        users[index] = updateData;
         dashboardService.saveData('utilisateurs', users);
+        invalidate(queryKeys.utilisateurs);
         setShowEditModal(false);
         resetForm();
-        chargerUtilisateurs();
         success('Utilisateur modifie avec succes !');
       }
     } catch (error) { showError(error.message); }
@@ -135,9 +142,9 @@ const GestionUtilisateurs = () => {
       const users = data.utilisateurs || [];
       const filtered = users.filter(u => u.idUser !== selectedUser.idUser);
       dashboardService.saveData('utilisateurs', filtered);
+      invalidate(queryKeys.utilisateurs);
       setShowDeleteModal(false);
       setSelectedUser(null);
-      chargerUtilisateurs();
       success('Utilisateur supprime avec succes !');
     } catch (error) { showError(error.message); }
   };
@@ -157,7 +164,17 @@ const GestionUtilisateurs = () => {
 
   const allRoles = roleService.getAllRoles();
 
-  if (loading) {
+  if (!peutVoirUtilisateurs) {
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">🚫</div>
+        <h3>Permission refus&eacute;e</h3>
+        <p>Vous n&rsquo;avez pas la permission de g&eacute;rer les utilisateurs.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

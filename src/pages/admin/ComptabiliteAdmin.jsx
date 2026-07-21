@@ -1,25 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { dashboardService } from '../../services/dashboardService';
+import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
+import { useAllData } from '../../hooks/useDataQueries';
 import { formatCFA } from '../../utils/formatters';
 import './ComptabiliteAdmin.css';
 
 const ComptabiliteAdmin = () => {
-  const [data, setData] = useState({});
-  const [loading, setLoading] = useState(true);
+  const { hasPermission } = useAuth();
+  const { data: allData, isLoading } = useAllData();
   const [activeTab, setActiveTab] = useState('apercu');
   const [periodFilter, setPeriodFilter] = useState('all');
 
-  const chargerDonnees = () => {
-    setLoading(true);
-    const allData = dashboardService.loadData();
-    setData(allData);
-    setLoading(false);
-  };
+  const { warning } = useNotification();
+
+  const peutVoirCompta = hasPermission('comptabilite:lire');
 
   useEffect(() => {
-    chargerDonnees();
-  }, []);
+    if (!peutVoirCompta) {
+      warning('⛔ Vous n\'avez pas la permission de consulter la comptabilité.');
+    }
+  }, [peutVoirCompta, warning]);
 
+  const data = allData || {};
   const ventes = data.ventes || [];
   const depenses = data.depenses || [];
   const transport = data.transport || [];
@@ -84,7 +86,17 @@ const ComptabiliteAdmin = () => {
     ventesParMois[mois] = (ventesParMois[mois] || 0) + v.totalVente;
   });
 
-  if (loading) {
+  if (!peutVoirCompta) {
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">🚫</div>
+        <h3>Permission refus&eacute;e</h3>
+        <p>Vous n&rsquo;avez pas la permission de consulter la comptabilit&eacute;.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

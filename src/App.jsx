@@ -1,10 +1,14 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useAuth } from './context/AuthContext';
 import * as roleService from './services/roleService';
 import Layout from './components/common/Layout';
 import Login from './pages/Login';
 import './App.css';
+
+const queryClient = new QueryClient();
 
 const DashboardAdmin = React.lazy(() => import('./pages/admin/DashboardAdmin'));
 const GestionComplete = React.lazy(() => import('./pages/admin/GestionComplete'));
@@ -61,7 +65,7 @@ const ProtectedRoute = ({ children, requiredRole, requiredPermission }) => {
   return <Layout>{children}</Layout>;
 };
 
-function App() {
+function AppContent() {
   const { user } = useAuth();
 
   return (
@@ -136,9 +140,9 @@ function App() {
             </ProtectedRoute>
           } />
           <Route path="/vendeur/mes-ventes" element={
-            <ProtectedRoute requiredRole="vendeur">
+            <Layout>
               <MesVentes />
-            </ProtectedRoute>
+            </Layout>
           } />
           <Route path="/vendeur/depenses" element={
             <ProtectedRoute requiredRole="vendeur">
@@ -165,6 +169,17 @@ function App() {
         </Routes>
       </React.Suspense>
     </div>
+  );
+}
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppContent />
+      {import.meta.env.DEV && (
+        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+      )}
+    </QueryClientProvider>
   );
 }
 

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { produitService, venteService } from '../../services/dataService';
+import { useProduits, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import FactureVente from '../../components/FactureVente';
 import { genererCodeBarre } from '../../components/EtiquetteProduit';
 import BarcodeScanner from '../../components/BarcodeScanner';
@@ -9,9 +10,19 @@ import './InterfaceVente.css';
 
 const InterfaceVente = () => {
   const { user, hasPermission } = useAuth();
-  const { success, error: showError } = useNotification();
+  const { success, error: showError, warning } = useNotification();
 
   const peutVendre = hasPermission('ventes:creer');
+
+  useEffect(() => {
+    if (!peutVendre) {
+      warning('⛔ Vous n\'avez pas la permission d\'effectuer des ventes.');
+    }
+  }, [peutVendre, warning]);
+
+  const invalidate = useInvalidateQueries();
+  const { data: allProduitsData, isLoading } = useProduits();
+  const produits = (allProduitsData || []).filter(p => p.quantiteRestante > 0);
 
   if (!peutVendre) {
     return (
@@ -30,27 +41,12 @@ const InterfaceVente = () => {
       </div>
     );
   }
-  const [produits, setProduits] = useState([]);
   const [panier, setPanier] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(true);
   const [typePaiement, setTypePaiement] = useState('espèces');
   const [showFacture, setShowFacture] = useState(false);
   const [derniereVente, setDerniereVente] = useState(null);
   const [showScanner, setShowScanner] = useState(false);
-
-  useEffect(() => {
-    chargerProduits();
-  }, []);
-
-  const chargerProduits = () => {
-    setLoading(true);
-    const allProduits = produitService.getAll();
-    // Filtrer les produits en stock
-    const produitsDisponibles = allProduits.filter(p => p.quantiteRestante > 0);
-    setProduits(produitsDisponibles);
-    setLoading(false);
-  };
 
   const ajouterAuPanier = (produit) => {
     const existant = panier.find(p => p.idProduit === produit.idProduit);
@@ -138,7 +134,7 @@ const InterfaceVente = () => {
 
       const panierData = [...panier];
       setPanier([]);
-      chargerProduits();
+      invalidate(queryKeys.produits, queryKeys.ventes, queryKeys.stats);
 
       // Préparer les données pour la facture
       setDerniereVente({
@@ -201,7 +197,7 @@ const InterfaceVente = () => {
     (produit.codeBarre && produit.codeBarre.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

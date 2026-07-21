@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { backupService } from '../../services/backupService';
 import { syncService } from '../../services/syncService';
 import { dataService } from '../../services/dataService';
+import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { formatCFA } from '../../utils/formatters';
 import './Parametres.css';
 
 const Parametres = () => {
-  const { success, error: showError, info } = useNotification();
+  const { hasPermission } = useAuth();
+  const { success, error: showError, info, warning } = useNotification();
   const [loading, setLoading] = useState(false);
   const [shareLink, setShareLink] = useState('');
   const [showResetModal, setShowResetModal] = useState(false);
@@ -58,6 +60,24 @@ const Parametres = () => {
     navigator.clipboard.writeText(link);
     info('🔗 Lien de partage copié dans le presse-papier !');
   };
+
+  const peutGererParametres = hasPermission('admin:parametres');
+
+  useEffect(() => {
+    if (!peutGererParametres) {
+      warning('⛔ Vous n\'avez pas la permission de gérer les paramètres.');
+    }
+  }, [peutGererParametres, warning]);
+
+  if (!peutGererParametres) {
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">🚫</div>
+        <h3>Permission refus&eacute;e</h3>
+        <p>Vous n&rsquo;avez pas la permission de g&eacute;rer les param&egrave;tres.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">

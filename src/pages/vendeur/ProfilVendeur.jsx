@@ -12,7 +12,6 @@ const ProfilVendeur = () => {
   const fileInputRef = useRef(null);
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({ totalVentes: 0, totalCA: 0, totalProduits: 0, moyenneVente: 0, joursActif: 0, meilleurMois: "" });
   const [formData, setFormData] = useState({ prenom: "", nom: "", email: "", telephone: "", localisation: "", bio: "" });
   const [photoPreview, setPhotoPreview] = useState(null);
@@ -43,26 +42,22 @@ const ProfilVendeur = () => {
   }, []);
 
   const chargerStats = () => {
-    setLoading(true);
-    setTimeout(() => {
-      try {
-        const data = dashboardService.loadData();
-        const ventes = data.ventes || [];
-        const mesVentes = ventes.filter(v => v.idVendeur === user?.idUser);
-        const totalVentes = mesVentes.length;
-        const totalCA = mesVentes.reduce((sum, v) => sum + v.totalVente, 0);
-        const totalProduits = mesVentes.reduce((sum, v) => sum + (v.produitsVendus?.length || 0), 0);
-        const moyenneVente = totalVentes > 0 ? Math.round(totalCA / totalVentes) : 0;
-        const dateCreation = user?.dateCreation ? new Date(user.dateCreation + "T00:00:00") : new Date();
-        const joursActif = Math.floor((new Date() - dateCreation) / (1000 * 60 * 60 * 24)) || 1;
-        const ventesParMois = {};
-        mesVentes.forEach(v => { const m = new Date(v.date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }); ventesParMois[m] = (ventesParMois[m] || 0) + v.totalVente; });
-        let meilleurMois = "-"; let maxCA = 0;
-        Object.entries(ventesParMois).forEach(([m, ca]) => { if (ca > maxCA) { maxCA = ca; meilleurMois = m; } });
-        setStats({ totalVentes, totalCA, totalProduits, moyenneVente, joursActif, meilleurMois });
-      } catch (err) { console.error("Erreur stats:", err); }
-      setLoading(false);
-    }, 400);
+    try {
+      const data = dashboardService.loadData();
+      const ventes = data.ventes || [];
+      const mesVentes = ventes.filter(v => v.idVendeur === user?.idUser);
+      const totalVentes = mesVentes.length;
+      const totalCA = mesVentes.reduce((sum, v) => sum + v.totalVente, 0);
+      const totalProduits = mesVentes.reduce((sum, v) => sum + (v.produitsVendus?.length || 0), 0);
+      const moyenneVente = totalVentes > 0 ? Math.round(totalCA / totalVentes) : 0;
+      const dateCreation = user?.dateCreation ? new Date(user.dateCreation + "T00:00:00") : new Date();
+      const joursActif = Math.floor((new Date() - dateCreation) / (1000 * 60 * 60 * 24)) || 1;
+      const ventesParMois = {};
+      mesVentes.forEach(v => { const m = new Date(v.date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }); ventesParMois[m] = (ventesParMois[m] || 0) + v.totalVente; });
+      let meilleurMois = "-"; let maxCA = 0;
+      Object.entries(ventesParMois).forEach(([m, ca]) => { if (ca > maxCA) { maxCA = ca; meilleurMois = m; } });
+      setStats({ totalVentes, totalCA, totalProduits, moyenneVente, joursActif, meilleurMois });
+    } catch (err) { console.error("Erreur stats:", err); }
   };
 
   const handlePhotoSelect = (e) => {
@@ -175,14 +170,6 @@ const ProfilVendeur = () => {
 
   const grade = getGradeColor();
   const perf = getPerfBadge();
-
-  const renderLoading = () => (
-    React.createElement("div", { className: "loading-container" },
-      React.createElement("div", { className: "loading-spinner" }),
-      React.createElement("p", null, "Chargement du profil..."))
-  );
-
-  if (loading) return renderLoading();
 
   return React.createElement('div', { className: 'profil-vendeur' },
     React.createElement('div', { className: 'profil-header' },

@@ -5,6 +5,9 @@ import { loadAllData, saveField, saveAllData, clearCache } from './firebaseServi
 let memoryCache = null;
 let initPromise = null;
 
+// Clés système qui ne sont pas dans initialData mais persistées séparément
+const SYSTEM_KEYS = ['roles_permissions_overrides', 'roles_config'];
+
 /**
  * Initialiser le cache depuis Firestore (appelé au démarrage de l'app)
  */
@@ -57,7 +60,7 @@ export const initFromFirestore = async () => {
  */
 const loadFromLocalStorage = () => {
   const data = {};
-  const allKeys = [...Object.keys(initialData), 'categories'];
+  const allKeys = [...Object.keys(initialData), 'categories', ...SYSTEM_KEYS];
   allKeys.forEach(key => {
     const stored = localStorage.getItem(`kodomarket_${key}`);
     if (stored) {
@@ -231,7 +234,7 @@ export const dashboardService = {
   },
 
   getAllKeys: () => {
-    return [...Object.keys(initialData), 'categories'];
+    return [...Object.keys(initialData), 'categories', ...SYSTEM_KEYS];
   },
 
   /**
@@ -285,7 +288,7 @@ export const dashboardService = {
     memoryCache = null;
     
     // Nettoyer localStorage
-    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses'];
+    const keys = ['utilisateurs', 'produits', 'stock', 'ventes', 'transport', 'depenses', ...SYSTEM_KEYS];
     keys.forEach(key => {
       localStorage.removeItem(`kodomarket_${key}`);
     });

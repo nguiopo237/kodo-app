@@ -41,6 +41,8 @@
   align-items: center;
   padding: 25px 30px;
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  animation: gradientShift 8s ease infinite;
+  background-size: 200% 200%;
   border-radius: 16px;
   color: white;
   margin-bottom: 25px;

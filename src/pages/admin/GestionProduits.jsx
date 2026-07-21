@@ -1,16 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { produitService } from '../../services/produitService';
 import { categorieService } from '../../services/categorieService';
+import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useProduits, useCategories, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import { formatCFA } from '../../utils/formatters';
 import { ImprimerEtiquettes, genererCodeBarre } from '../../components/EtiquetteProduit';
 import BarcodeCell from '../../components/BarcodeCell';
 import './GestionProduits.css';
 
 const GestionProduits = () => {
-  const [produits, setProduits] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { hasPermission } = useAuth();
+  const { data: allProduits, isLoading: produitsLoading } = useProduits();
+  const { data: allCategories } = useCategories();
+  const invalidate = useInvalidateQueries();
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -18,7 +21,7 @@ const GestionProduits = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategorie, setFilterCategorie] = useState('');
   const [filterStock, setFilterStock] = useState('tous');
-  const { success, error: showError } = useNotification();
+  const { success, error: showError, warning } = useNotification();
   const fileInputRef = useRef(null);
 
   // Import CSV
@@ -47,18 +50,17 @@ const GestionProduits = () => {
   // Formulaire edition
   const [editForm, setEditForm] = useState({ ...emptyForm });
 
-  const chargerDonnees = () => {
-    setLoading(true);
-    const allProduits = produitService.getProduits();
-    const allCategories = categorieService.getCategories();
-    setProduits(allProduits);
-    setCategories(allCategories);
-    setLoading(false);
-  };
+  const peutVoirProduits = hasPermission('produits:lire');
 
   useEffect(() => {
-    chargerDonnees();
-  }, []);
+    if (!peutVoirProduits) {
+      warning('⛔ Vous n\'avez pas la permission de gérer les produits.');
+    }
+  }, [peutVoirProduits, warning]);
+
+  const produits = allProduits || [];
+  const categories = allCategories || [];
+  const loading = produitsLoading;
 
   // Filtrage
   const produitsFiltres = produits.filter(p => {
@@ -103,7 +105,7 @@ const GestionProduits = () => {
       produitService.ajouterProduit({ ...formData, quantiteExacte });
       setShowAddModal(false);
       setFormData({ ...emptyForm });
-      chargerDonnees();
+      invalidate(queryKeys.produits, queryKeys.stock, queryKeys.categories, queryKeys.stats);
       success('Produit ajoute avec succes !');
     } catch (error) {
       showError('Erreur: ' + error.message);
@@ -147,7 +149,7 @@ const GestionProduits = () => {
       });
       setShowEditModal(false);
       setSelectedProduit(null);
-      chargerDonnees();
+      invalidate(queryKeys.produits, queryKeys.stock, queryKeys.stats);
       success('Produit modifie avec succes !');
     } catch (error) {
       showError('Erreur: ' + error.message);
@@ -166,7 +168,7 @@ const GestionProduits = () => {
       produitService.supprimerProduit(selectedProduit.idProduit, true);
       setShowDeleteModal(false);
       setSelectedProduit(null);
-      chargerDonnees();
+      invalidate(queryKeys.produits, queryKeys.stock, queryKeys.stats);
       success('Produit supprime avec succes');
     } catch (error) {
       showError('Erreur: ' + error.message);
@@ -186,7 +188,7 @@ const GestionProduits = () => {
         prixBoutique: produit.prixBoutique || 0,
         alerteSeuil: produit.alerteSeuil || 10
       });
-      chargerDonnees();
+      invalidate(queryKeys.produits, queryKeys.stock, queryKeys.stats);
       success('Produit duplique avec succes !');
     } catch (error) {
       showError('Erreur: ' + error.message);
@@ -341,7 +343,7 @@ const GestionProduits = () => {
     setShowImportModal(false);
     setImportData([]);
     setImportErrors(detailsErreurs);
-    chargerDonnees();
+    invalidate(queryKeys.produits, queryKeys.stock, queryKeys.categories, queryKeys.stats);
 
     if (errorCount > 0) {
       showError(`${successCount} importe(s), ${errorCount} erreur(s). Consultez la console pour les details.`);
@@ -456,6 +458,16 @@ const GestionProduits = () => {
       return updated;
     });
   };
+
+  if (!peutVoirProduits) {
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">🚫</div>
+        <h3>Permission refus&eacute;e</h3>
+        <p>Vous n&rsquo;avez pas la permission de g&eacute;rer les produits.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
+      </div>
+    );
+  }
 
   if (loading) {
     return (

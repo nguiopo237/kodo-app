@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { dataService } from '../../services/dataService';
+import { useDepenses, useTransport, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import { formatCFA } from '../../utils/formatters';
 import './DeclarerDepenses.css';
 
@@ -16,9 +17,24 @@ const TYPES_DEPENSES = [
 
 const DeclarerDepenses = () => {
   const { user, hasPermission } = useAuth();
-  const { success, error: showError } = useNotification();
+  const { success, error: showError, warning } = useNotification();
 
   const peutGererDepenses = hasPermission('depenses:creer');
+
+  useEffect(() => {
+    if (!peutGererDepenses) {
+      warning('⛔ Vous n\'avez pas la permission de déclarer des dépenses.');
+    }
+  }, [peutGererDepenses, warning]);
+
+  const { data: allDepenses = [], isLoading } = useDepenses();
+  const { data: allEnvois = [] } = useTransport();
+  const invalidate = useInvalidateQueries();
+
+  const depenses = (allDepenses || [])
+    .filter(d => d.idVendeur === user?.idUser)
+    .sort((a, b) => new Date(b.date) - new Date(a.date));
+  const envois = allEnvois || [];
 
   if (!peutGererDepenses) {
     return (
@@ -39,9 +55,6 @@ const DeclarerDepenses = () => {
       </div>
     );
   }
-  const [depenses, setDepenses] = useState([]);
-  const [envois, setEnvois] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState('');
   const [filterPeriod, setFilterPeriod] = useState('all');
@@ -57,21 +70,6 @@ const DeclarerDepenses = () => {
     idEnvoiAssocie: ''
   };
   const [form, setForm] = useState({ ...emptyForm });
-
-  const chargerDonnees = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const allData = dataService.getAll();
-      const mesDepenses = (allData.depenses || [])
-        .filter(d => d.idVendeur === user?.idUser)
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-      setDepenses(mesDepenses);
-      setEnvois(allData.transport || []);
-      setLoading(false);
-    }, 300);
-  };
-
-  useEffect(() => { chargerDonnees(); }, []);
 
   const getFiltered = (items) => {
     let result = [...items];
@@ -137,7 +135,7 @@ const DeclarerDepenses = () => {
       }
       setForm({ ...emptyForm });
       setEditingDepense(null);
-      chargerDonnees();
+      invalidate(queryKeys.depenses, queryKeys.stats);
     } catch (err) {
       showError('Erreur: ' + err.message);
     }
@@ -170,14 +168,14 @@ const DeclarerDepenses = () => {
       dataService.delete('depenses', toDelete.idDepense);
       setShowDeleteModal(false);
       setToDelete(null);
-      chargerDonnees();
+      invalidate(queryKeys.depenses, queryKeys.stats);
       success('Depense supprimee avec succes');
     } catch (err) {
       showError('Erreur: ' + err.message);
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

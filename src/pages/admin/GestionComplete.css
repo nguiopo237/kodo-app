@@ -28,6 +28,8 @@
 
 .page-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  animation: gradientShift 8s ease infinite;
+  background-size: 200% 200%;
   border-radius: 16px;
   padding: 25px;
   color: white;

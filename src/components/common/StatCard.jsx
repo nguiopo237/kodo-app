@@ -10,7 +10,7 @@ const StatCard = ({ title, value, icon, color = 'blue', trend = null }) => {
         <div className="stat-value">{value}</div>
         {trend && (
           <div className={`stat-trend ${trend.direction}`}>
-            {trend.direction === 'up' ? '↗' : '↘'} {trend.value}
+            {trend.direction === 'up' ? '\u2197' : '\u2198'} {trend.value}
           </div>
         )}
       </div>

@@ -1,19 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardService } from '../../services/dashboardService';
 import { formatCFA } from '../../utils/formatters';
+import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useAllData, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import './EnvoisTransport.css';
 
 const EnvoisTransport = () => {
-  const [envois, setEnvois] = useState([]);
-  const [produits, setProduits] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { hasPermission } = useAuth();
+  const { data: allData, isLoading } = useAllData();
+  const invalidate = useInvalidateQueries();
   const [showAjoutModal, setShowAjoutModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filtreStatut, setFiltreStatut] = useState('tous');
-  const { success, error: showError } = useNotification();
+  const { success, error: showError, warning } = useNotification();
   const [editingEnvoi, setEditingEnvoi] = useState(null);
 
   const [formData, setFormData] = useState({
@@ -31,17 +33,17 @@ const EnvoisTransport = () => {
   const [selectedProduit, setSelectedProduit] = useState('');
   const [selectedQuantite, setSelectedQuantite] = useState(1);
 
-  const chargerDonnees = () => {
-    setLoading(true);
-    const data = dashboardService.loadData();
-    setEnvois(data.transport || []);
-    setProduits(data.produits || []);
-    setLoading(false);
-  };
+  const peutVoirTransport = hasPermission('transport:lire');
 
   useEffect(() => {
-    chargerDonnees();
-  }, []);
+    if (!peutVoirTransport) {
+      warning('⛔ Vous n\'avez pas la permission de consulter les transports.');
+    }
+  }, [peutVoirTransport, warning]);
+
+  const data = allData || {};
+  const envois = data.transport || [];
+  const produits = data.produits || [];
 
   const envoisFiltres = envois.filter(envoi => {
     const matchSearch = !searchTerm || 
@@ -155,9 +157,9 @@ const EnvoisTransport = () => {
             majStockReception(transport[index], data);
           }
           dashboardService.saveData('transport', transport);
+          invalidate(queryKeys.transport, queryKeys.stock, queryKeys.stats);
           setShowAjoutModal(false);
           resetForm();
-          chargerDonnees();
           success(`Envoi #TR-${editingEnvoi.idEnvoi.toString().padStart(3, '0')} modifie avec succes !`);
         }
         return;
@@ -190,9 +192,9 @@ const EnvoisTransport = () => {
         majStockReception(nouvelEnvoi, data);
       }
 
+      invalidate(queryKeys.transport, queryKeys.stock, queryKeys.stats);
       setShowAjoutModal(false);
       resetForm();
-      chargerDonnees();
       success(`Envoi #TR-${newId.toString().padStart(3, '0')} cree avec succes !`);
     } catch (error) {
       showError('Erreur: ' + error.message);
@@ -237,7 +239,7 @@ const EnvoisTransport = () => {
         transport[index].confirmeReception = true;
         majStockReception(transport[index], data);
         dashboardService.saveData('transport', transport);
-        chargerDonnees();
+        invalidate(queryKeys.transport, queryKeys.stock, queryKeys.stats);
         success(`Réception confirmée pour l'envoi #TR-${envoi.idEnvoi.toString().padStart(3, '0')} !`);
       }
     } catch (error) {
@@ -252,8 +254,8 @@ const EnvoisTransport = () => {
       const transport = data.transport || [];
       const filtered = transport.filter(t => t.idEnvoi !== showDeleteModal.idEnvoi);
       dashboardService.saveData('transport', filtered);
+      invalidate(queryKeys.transport);
       setShowDeleteModal(null);
-      chargerDonnees();
       success('Envoi supprimé avec succès');
     } catch (error) {
       showError('Erreur: ' + error.message);
@@ -307,7 +309,17 @@ const EnvoisTransport = () => {
     return '🌍';
   };
 
-  if (loading) {
+  if (!peutVoirTransport) {
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">🚫</div>
+        <h3>Permission refus&eacute;e</h3>
+        <p>Vous n&rsquo;avez pas la permission de g&eacute;rer le transport.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

@@ -1,13 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import { dataService } from '../../services/dataService';
+import { useAllData, queryKeys } from '../../hooks/useDataQueries';
 import { formatCFA } from '../../utils/formatters';
 import './ComptabiliteVendeur.css';
 
 const ComptabiliteVendeur = () => {
   const { user, hasPermission } = useAuth();
 
+  const { warning } = useNotification();
+
   const peutVoirCompta = hasPermission('comptabilite:lire');
+
+  useEffect(() => {
+    if (!peutVoirCompta) {
+      warning('⛔ Vous n\'avez pas la permission de consulter la comptabilité.');
+    }
+  }, [peutVoirCompta, warning]);
+
+  const { data: allData = {}, isLoading } = useAllData();
+
   if (!peutVoirCompta) {
     return (
       <div className="compta-vendeur">
@@ -28,21 +41,10 @@ const ComptabiliteVendeur = () => {
     );
   }
 
-  const [data, setData] = useState({});
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('apercu');
   const [periodFilter, setPeriodFilter] = useState('all');
 
-  const chargerDonnees = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const allData = dataService.getAll();
-      setData(allData);
-      setLoading(false);
-    }, 300);
-  };
-
-  useEffect(() => { chargerDonnees(); }, []);
+  const data = allData;
 
   const toutesVentes = (data.ventes || []).filter(v => v.idVendeur === user?.idUser);
   const depenses = (data.depenses || []).filter(d => d.idVendeur === user?.idUser);
@@ -103,7 +105,7 @@ const ComptabiliteVendeur = () => {
   const moisKeys = Object.keys(evolution).slice(-6);
   const maxChartValue = Math.max(...moisKeys.map(m => Math.max(evolution[m]?.ca || 0, evolution[m]?.depenses || 0)), 1);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

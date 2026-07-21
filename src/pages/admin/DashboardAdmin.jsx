@@ -1,62 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
-import { dataService, statsService } from '../../services/dataService';
+import { dataService } from '../../services/dataService';
+import { useAllData, useStats, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import { formatCFA } from '../../utils/formatters';
 import StatCard from '../../components/common/StatCard';
 import './DashboardAdmin.css';
 
 const DashboardAdmin = () => {
-  const { user } = useAuth();
-  const [stats, setStats] = useState({});
-  const [ventesRecent, setVentesRecent] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { success } = useNotification();
+  const { user, hasPermission } = useAuth();
+  const { data: stats, isLoading: statsLoading } = useStats();
+  const { data: allData } = useAllData();
+  const invalidate = useInvalidateQueries();
+  const { success, warning } = useNotification();
   const [showResetModal, setShowResetModal] = useState(false);
   const [resetSummary, setResetSummary] = useState(null);
 
-  useEffect(() => {
-    chargerDonnees();
-  }, []);
+  const peutVoirStats = hasPermission('admin:stats');
 
-  const chargerDonnees = () => {
-    setLoading(true);
-    
-    const statsData = statsService.get();
-    setStats(statsData);
-    
-    const toutesVentes = dataService.getTable('ventes') || [];
-    const ventesTriees = [...toutesVentes].sort((a, b) => 
-      new Date(b.date) - new Date(a.date)
-    ).slice(0, 5);
-    
-    const produits = dataService.getTable('produits') || [];
-    const utilisateurs = dataService.getTable('utilisateurs') || [];
-    
-    const ventesEnrichies = ventesTriees.map(vente => {
-      const vendeur = utilisateurs.find(u => u.idUser === vente.idVendeur);
-      const premierProduit = vente.produitsVendus?.[0];
-      const produit = produits.find(p => p.idProduit === premierProduit?.idProduit);
-      
-      return {
-        ...vente,
-        vendeurNom: vendeur?.nomComplet || 'Vendeur',
-        produitNom: produit?.nomProduit || 'Produit',
-        prix: produit?.prix || '0',
-        quantite: premierProduit?.quantite || 0,
-        dateFormatee: new Date(vente.date).toLocaleDateString('fr-FR', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      };
-    });
-    
-    setVentesRecent(ventesEnrichies);
-    setLoading(false);
-  };
+  useEffect(() => {
+    if (!peutVoirStats) {
+      warning('⛔ Vous n\'avez pas la permission de consulter les statistiques du tableau de bord.');
+    }
+  }, [peutVoirStats, warning]);
+
+  const produits = allData?.produits || [];
+  const utilisateurs = allData?.utilisateurs || [];
+  const toutesVentes = allData?.ventes || [];
+  const ventesTriees = [...toutesVentes].sort((a, b) => 
+    new Date(b.date) - new Date(a.date)
+  ).slice(0, 5);
+
+  const ventesRecent = ventesTriees.map(vente => {
+    const vendeur = utilisateurs.find(u => u.idUser === vente.idVendeur);
+    const premierProduit = vente.produitsVendus?.[0];
+    const produit = produits.find(p => p.idProduit === premierProduit?.idProduit);
+    return {
+      ...vente,
+      vendeurNom: vendeur?.nomComplet || 'Vendeur',
+      produitNom: produit?.nomProduit || 'Produit',
+      prix: produit?.prix || '0',
+      quantite: premierProduit?.quantite || 0,
+      dateFormatee: new Date(vente.date).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    };
+  });
+
+  if (!peutVoirStats) {
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">🚫</div>
+        <h3>Permission refus&eacute;e</h3>
+        <p>Vous n&rsquo;avez pas la permission de consulter les statistiques.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
+      </div>
+    );
+  }
 
   const handleOpenResetModal = () => {
     const summary = dataService.getResetSummary();
@@ -67,7 +70,7 @@ const DashboardAdmin = () => {
   const handleConfirmReset = async () => {
     setShowResetModal(false);
     await dataService.reinitialiser();
-    chargerDonnees();
+    invalidate(queryKeys.all, queryKeys.stats, queryKeys.produits, queryKeys.ventes);
     success('🔄 Toutes les données ont été réinitialisées avec succès !');
   };
 
@@ -80,7 +83,7 @@ const DashboardAdmin = () => {
     ? resetSummary.produits + resetSummary.ventes + resetSummary.transport + resetSummary.depenses
     : 0;
 
-  if (loading) {
+  if (statsLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>

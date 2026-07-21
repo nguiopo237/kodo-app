@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import * as roleService from '../../services/roleService';
 import './GestionRoles.css';
 
 const GestionRoles = () => {
-  const { success, error: showError } = useNotification();
+  const { hasPermission } = useAuth();
+  const { success, error: showError, warning } = useNotification();
   const [roles, setRoles] = useState([]);
-  const [loading, setLoading] = useState(true);
-
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [editRoleId, setEditRoleId] = useState(null);
   const [roleForm, setRoleForm] = useState({ id: '', label: '', icon: '🔄', description: '', color: '#6b7280', bgColor: '#f3f4f6', level: 1 });
@@ -37,13 +37,17 @@ const GestionRoles = () => {
   ];
 
   const chargerRoles = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const allRoles = roleService.getAllRoles();
-      setRoles(allRoles);
-      setLoading(false);
-    }, 300);
+    const allRoles = roleService.getAllRoles();
+    setRoles(allRoles);
   };
+
+  const peutGererRoles = hasPermission('utilisateurs:changer_role');
+
+  useEffect(() => {
+    if (!peutGererRoles) {
+      warning('⛔ Vous n\'avez pas la permission de gérer les rôles et permissions.');
+    }
+  }, [peutGererRoles, warning]);
 
   useEffect(() => { chargerRoles(); }, []);
 
@@ -140,11 +144,12 @@ const GestionRoles = () => {
   const countGranted = (role) => roleService.getRolePermissions(role.id).length;
   const countTotal = () => Object.values(roleService.PERMISSIONS).length;
 
-  if (loading) {
+  if (!peutGererRoles) {
     return (
-      <div className="loading-container">
-        <div className="loading-spinner"></div>
-        <p>Chargement des roles...</p>
+      <div className="empty-state">
+        <div className="empty-icon">🚫</div>
+        <h3>Permission refus&eacute;e</h3>
+        <p>Vous n&rsquo;avez pas la permission de g&eacute;rer les r&ocirc;les et permissions.<br />Contactez l&rsquo;administrateur pour obtenir l&rsquo;acc&egrave;s n&eacute;cessaire.</p>
       </div>
     );
   }
@@ -271,7 +276,7 @@ const GestionRoles = () => {
                 </div>
                 <div className="perm-bar-track" style={{ width: '100%', height: '8px', background: '#e5e7eb', borderRadius: '10px', overflow: 'hidden' }}>
                   <div className="perm-bar-fill" style={{ height: '100%', borderRadius: '10px', transition: 'width 0.5s ease', width: pct + '%', backgroundColor: role.color }}></div>
-                </div>
+                </div>  
               </div>
               <div className="role-card-actions" style={{ display: 'flex', gap: '8px', padding: '16px 20px', borderTop: '1px solid #f1f5f9' }}>
                 <button className="btn-action config" onClick={() => handleOpenPermissions(role)} style={{ flex: 1, padding: '8px 14px', background: '#eff6ff', color: '#2563eb', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem', transition: 'all 0.2s ease' }}>Permissions</button>

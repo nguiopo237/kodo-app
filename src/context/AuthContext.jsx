@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import { dashboardService } from '../services/dashboardService';
 import * as roleService from '../services/roleService';
+import bcrypt from 'bcryptjs';
 
 const AuthContext = createContext();
 
@@ -22,8 +23,6 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
     try {
       if (!username || !password) {
         throw new Error('Nom d\'utilisateur et mot de passe requis');
@@ -40,7 +39,8 @@ export const AuthProvider = ({ children }) => {
         throw new Error('Utilisateur introuvable');
       }
 
-      if (found.password !== password) {
+      const passwordMatch = await bcrypt.compare(password, found.password);
+      if (!passwordMatch) {
         throw new Error('Mot de passe incorrect');
       }
 

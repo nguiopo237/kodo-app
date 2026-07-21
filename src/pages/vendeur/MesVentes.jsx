@@ -1,16 +1,41 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import { venteService } from '../../services/venteService';
-import { dashboardService } from '../../services/dashboardService';
+import { useVentes, useInvalidateQueries, queryKeys } from '../../hooks/useDataQueries';
 import FactureVente from '../../components/FactureVente';
 import './MesVentes.css';
 
 const MesVentes = () => {
   const { user, hasPermission } = useAuth();
-  const { success, error: showError } = useNotification();
+  const { success, error: showError, warning } = useNotification();
 
   const peutVoirVentes = hasPermission('ventes:lire');
+
+  useEffect(() => {
+    if (!peutVoirVentes) {
+      warning('⛔ Vous n\'avez pas la permission de consulter les ventes.');
+    }
+  }, [peutVoirVentes, warning]);
+
+  const { data: allVentes = [], isLoading } = useVentes();
+  const invalidate = useInvalidateQueries();
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatut, setFilterStatut] = useState('tous');
+  const [filterPeriode, setFilterPeriode] = useState('tout');
+  const [selectedVente, setSelectedVente] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showFacture, setShowFacture] = useState(false);
+  const [selectedFactureVente, setSelectedFactureVente] = useState(null);
+
+  const ventes = (allVentes || []).filter(v => v.idVendeur === user?.idUser);
+  const stats = useMemo(() => ({
+    totalVentes: ventes.length,
+    totalCA: ventes.reduce((sum, v) => sum + v.totalVente, 0),
+    totalProduits: ventes.reduce((sum, v) => sum + (v.produitsVendus || []).length, 0),
+    moyenneVente: ventes.length > 0 ? ventes.reduce((sum, v) => sum + v.totalVente, 0) / ventes.length : 0,
+  }), [ventes]);
 
   if (!peutVoirVentes) {
     return (
@@ -31,52 +56,6 @@ const MesVentes = () => {
       </div>
     );
   }
-  const [ventes, setVentes] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatut, setFilterStatut] = useState('tous');
-  const [filterPeriode, setFilterPeriode] = useState('tout');
-  const [selectedVente, setSelectedVente] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showFacture, setShowFacture] = useState(false);
-  const [selectedFactureVente, setSelectedFactureVente] = useState(null);
-  const [stats, setStats] = useState({
-    totalVentes: 0,
-    totalCA: 0,
-    totalProduits: 0,
-    moyenneVente: 0
-  });
-
-  useEffect(() => {
-    chargerVentes();
-  }, []);
-
-  const chargerVentes = () => {
-    setLoading(true);
-    setTimeout(() => {
-      const toutesVentes = venteService.getVentesDetaillees();
-      
-      // Filtrer les ventes du vendeur connecté
-      const mesVentes = toutesVentes.filter(v => v.idVendeur === user?.idUser);
-      
-      setVentes(mesVentes);
-      calculerStats(mesVentes);
-      setLoading(false);
-    }, 500);
-  };
-
-  const calculerStats = (ventes) => {
-    const total = ventes.length;
-    const ca = ventes.reduce((sum, v) => sum + v.totalVente, 0);
-    const produits = ventes.reduce((sum, v) => sum + v.produitsVendus.length, 0);
-    
-    setStats({
-      totalVentes: total,
-      totalCA: ca,
-      totalProduits: produits,
-      moyenneVente: total > 0 ? ca / total : 0
-    });
-  };
 
   const formatCFA = (montant) => {
     if (!montant && montant !== 0) return '0 FCFA';
@@ -183,7 +162,7 @@ const MesVentes = () => {
     link.click();
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="loading-container">
         <div className="loading-spinner"></div>
@@ -206,7 +185,7 @@ const MesVentes = () => {
           <button className="btn btn-secondary" onClick={exportCSV}>
             📥 Exporter CSV
           </button>
-          <button className="btn btn-primary" onClick={chargerVentes}>
+          <button className="btn btn-primary" onClick={() => invalidate(queryKeys.ventes)}>
             🔄 Actualiser
           </button>
         </div>

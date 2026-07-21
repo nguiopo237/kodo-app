@@ -210,6 +210,43 @@ describe('hasPermission()', () => {
     expect(hasPermission(user, PERMISSIONS.ADMIN_PARAMETRES)).toBe(false);
   });
 
+  it('retourne false pour les permissions non attribuees sur tous les roles integres', () => {
+    mockLoadData.mockReturnValue({ roles_config: [], roles_permissions_overrides: {} });
+
+    // Vendeur - permissions hors defaut
+    // Vendeur n'a pas: produits:creer, utilisateurs:*, transport:creer, admin:*
+    const vendeur = { role: ROLES.VENDEUR };
+    expect(hasPermission(vendeur, PERMISSIONS.UTILISATEURS_CREER)).toBe(false);
+    expect(hasPermission(vendeur, PERMISSIONS.ADMIN_PARAMETRES)).toBe(false);
+    expect(hasPermission(vendeur, PERMISSIONS.PRODUITS_CREER)).toBe(false);
+
+    // Admin - permissions hors defaut
+    // Admin n'a pas: ventes:creer, ventes:modifier, ventes:supprimer
+    const admin = { role: ROLES.ADMIN };
+    expect(hasPermission(admin, PERMISSIONS.VENTES_CREER)).toBe(false);
+    expect(hasPermission(admin, PERMISSIONS.VENTES_MODIFIER)).toBe(false);
+
+    // Livreur - permissions hors defaut
+    // Livreur a: transport:lire, transport:confirmer, produits:lire
+    // Livreur n'a pas: ventes:creer, admin:stats, utilisateurs:lire
+    const livreur = { role: ROLES.LIVREUR };
+    expect(hasPermission(livreur, PERMISSIONS.VENTES_CREER)).toBe(false);
+    expect(hasPermission(livreur, PERMISSIONS.ADMIN_STATS)).toBe(false);
+    expect(hasPermission(livreur, PERMISSIONS.UTILISATEURS_LIRE)).toBe(false);
+
+    // Comptable - permissions hors defaut
+    // Comptable n'a pas: produits:*, ventes:creer, utilisateurs:*, transport:*, admin:*
+    const comptable = { role: ROLES.COMPTABLE };
+    expect(hasPermission(comptable, PERMISSIONS.UTILISATEURS_CREER)).toBe(false);
+    expect(hasPermission(comptable, PERMISSIONS.VENTES_CREER)).toBe(false);
+    expect(hasPermission(comptable, PERMISSIONS.PRODUITS_LIRE)).toBe(false);
+
+    // Super_Admin a toutes les permissions (jamais false)
+    Object.values(PERMISSIONS).forEach(p => {
+      expect(hasPermission({ role: ROLES.SUPER_ADMIN }, p)).toBe(true);
+    });
+  });
+
   it('retourne false pour un role inconnu', () => {
     mockLoadData.mockReturnValue({ roles_config: [], roles_permissions_overrides: {} });
     expect(hasPermission({ role: 'role_inexistant' }, PERMISSIONS.PRODUITS_LIRE)).toBe(false);
